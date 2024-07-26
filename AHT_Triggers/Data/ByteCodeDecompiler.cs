@@ -9,6 +9,12 @@ using System.Threading.Tasks;
 
 namespace AHT_Triggers.Data
 {
+    internal struct LocalVar
+    {
+        public int index;
+        public int proc;
+    }
+
     internal class ByteCodeDecompiler
     {
         private GameScript script;
@@ -19,9 +25,16 @@ namespace AHT_Triggers.Data
         //How many spaces are added for each indentation level
         private int IndentLevel = 2;
 
+        //Lists to keep track of information regarding variables during the script decompile
+        List<LocalVar> TrackedLocals;
+        List<int>      TrackedGlobals;
+        private bool TrackVars = false;
+
         //Key is line number, value is name
         private Dictionary<int, string> ProcHeaders  = new Dictionary<int, string>();
         private Dictionary<int, string> LabelHeaders = new Dictionary<int, string>();
+
+        private int CurrentProc;
 
         //How the indentation changes before and after a line of code
         private enum IndentState
@@ -56,6 +69,7 @@ namespace AHT_Triggers.Data
             }
         }
 
+        //Create a compare statement between two variables/values with a given operator ID
         private string CreateCompareStatement(string val1, string val2, byte oper)
         {
             string str = "";
@@ -91,6 +105,7 @@ namespace AHT_Triggers.Data
             return str;
         }
 
+        //Create a math statement between two variables/values with a given operator ID
         private string CreateMathStatement(string val1, string val2, byte oper)
         {
             string str = "";
@@ -136,8 +151,42 @@ namespace AHT_Triggers.Data
             return str;
         }
 
+        //Store information about used variables for later
+        private void TrackVar(int i)
+        {
+            if (i < script.NumGlobals)
+            {
+                if (i > 23) //There are 24 language-defined globals that are always present
+                {
+                    if (TrackedGlobals.Contains(i)) { return; }
+                    TrackedGlobals.Add(i);
+                }
+            }
+            else
+            {
+                foreach (LocalVar v in TrackedLocals)
+                {
+                    if (v.index == i)
+                    {
+                        return;
+                    }
+                }
+
+                TrackedLocals.Add(
+                    new LocalVar
+                    {
+                        index = i,
+                        proc = CurrentProc
+                    }
+                );
+            }
+        }
+
+        //Create a name for a variable at the given index
         private string GetVarName(int i)
         {
+            if (TrackVars) { TrackVar(i); }
+
             if (i < script.NumGlobals)
             {
                 return "glo" + i;
@@ -210,6 +259,12 @@ namespace AHT_Triggers.Data
             ProcHeaders.Clear();
             LabelHeaders.Clear();
 
+            CurrentProc = -1;
+
+            TrackVars = true;
+            TrackedGlobals = new List<int>();
+            TrackedLocals = new List<LocalVar>();
+
             //Keep track of labels we're creating
             int labelnr = 0;
 
@@ -225,9 +280,17 @@ namespace AHT_Triggers.Data
                 {
                     if (p.StartLine == i)
                     {
+                        string s = p.Name;
+                        if (p.Exclusive)
+                        {
+                            s += " exclusive";
+                        }
+
                         //Add indentation after start of procedure
                         Indentation = 1;
-                        ProcHeaders.Add(i, p.Name);
+                        ProcHeaders.Add(i, s);
+
+                        CurrentProc++;
 
                         break;
                     }
@@ -249,24 +312,78 @@ namespace AHT_Triggers.Data
                 codeStr.Add(str);
             }
 
+            TrackVars = false;
+
             //Second pass:
-            //Add procedure headers and labels
+            //Add procedure headers and labels, relocate "AND" statements
             //Keep track of how far we've drifted using a variable, so we don't add a line to the wrong place
             int offs = 0;
+
+            //Add list of defined constants at the top
+            if (TrackedGlobals.Count > 0)
+            {
+                int i;
+                for (i = 0; i < TrackedGlobals.Count; i++)
+                {
+                    codeStr.Insert(offs, "INT " + GetVarName(TrackedGlobals[i]));
+                    offs++;
+                }
+            }
+
+            //Keep track of which procedures we've added
+            CurrentProc = -1;
+
             for (int i = 0; i < script.NumLines; i++)
             {
                 //Check if a list contains a value at a given line of code (+ the drift), and insert the name if so.
 
                 if (ProcHeaders.ContainsKey(i))
                 {
+                    CurrentProc++;
+
+                    codeStr.Insert(i + offs, "");
+                    offs++;
                     codeStr.Insert(i + offs, "DEFPROC " + ProcHeaders[i]);
                     offs++;
+
+                    //Add locals for the current procedure at the top
+                    if (TrackedLocals.Count > 0)
+                    {
+                        //We only add an empty line if we actually put any locals there
+                        bool addNewLine = false;
+
+                        for (int j = 0;  j < TrackedLocals.Count; j++)
+                        {
+                            //Only add locals part of the current procedure
+                            if (TrackedLocals[j].proc == CurrentProc)
+                            {
+                                codeStr.Insert(i + offs, new string(' ', IndentLevel) + "INT " + GetVarName(TrackedLocals[j].index));
+                                offs++;
+
+                                addNewLine = true;
+                            }
+                        }
+                        if (addNewLine)
+                        {
+                            codeStr.Insert(i + offs, "");
+                            offs++;
+                        }
+                    }
                 }
 
+                //If the line number has an associated label, add it
                 if (LabelHeaders.ContainsKey(i))
                 {
                     codeStr.Insert(i + offs, new string(' ', IndentLevel) + "LABEL " + LabelHeaders[i]);
                     offs++;
+                }
+
+                //Take any line with "AND" and stick it onto the line before, then delete the original line
+                if (codeStr[i].IndexOf("AND") >= 0)
+                {
+                    codeStr[i - 1] += " " + codeStr[i].Trim();
+                    codeStr.RemoveAt(i);
+                    offs--; //Since we've removed a line, not added one
                 }
             }
 
@@ -516,11 +633,11 @@ namespace AHT_Triggers.Data
 
                     break;
                 case 0x20: // <var> = CALLPROC <procedure>
-                    str = GetVarName(line.Data3) + " CALLPROC " + script.Procedures[line.Data1].Name;
+                    str = GetVarName(line.Data3) + " = CALLPROC " + script.Procedures[line.Data1].Name;
 
                     break;
                 case 0x21: // <var> = INSTANCE <procedure>
-                    str = GetVarName(line.Data3) + " INSTANCE " + script.Procedures[line.Data1].Name;
+                    str = GetVarName(line.Data3) + " = INSTANCE " + script.Procedures[line.Data1].Name;
 
                     break;
                 case 0x22: // BREAK

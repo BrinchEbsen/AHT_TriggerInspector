@@ -53,6 +53,7 @@
     <Compile Include="Data\EDBReader.cs" />
     <Compile Include="Data\EDBWriter.cs" />
     <Compile Include="Data\FileHandler.cs" />
+    <Compile Include="Data\SyntaxHighlight.cs" />
     <Compile Include="Data\Trigger.cs" />
     <Compile Include="MainWnd.cs">
       <SubType>Form</SubType>
