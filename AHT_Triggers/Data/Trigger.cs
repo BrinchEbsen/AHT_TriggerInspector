@@ -86,9 +86,9 @@ namespace AHT_Triggers.Data
 
         public string DecodeScript()
         {
-            ByteCodeDecompiler decompiler = new ByteCodeDecompiler();
+            ByteCodeDecompiler decompiler = new ByteCodeDecompiler(this.Script);
 
-            return decompiler.ScriptToString(Script);
+            return decompiler.ScriptToString();
         }
     }
 

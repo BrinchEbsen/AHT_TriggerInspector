@@ -1,5 +1,7 @@
-﻿using System;
+﻿using AHT_Triggers.Common;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -9,18 +11,44 @@ namespace AHT_Triggers.Data
 {
     internal class ByteCodeDecompiler
     {
+        private GameScript script;
+
+        //Amount of space before the line of code that is deciphered
         private int Indentation = 0;
 
-        public ByteCodeDecompiler() { }
+        //How many spaces are added for each indentation level
+        private int IndentLevel = 2;
 
-        private void IncIndentation()
+        //Key is line number, value is name
+        private Dictionary<int, string> ProcHeaders  = new Dictionary<int, string>();
+        private Dictionary<int, string> LabelHeaders = new Dictionary<int, string>();
+
+        //How the indentation changes before and after a line of code
+        private enum IndentState
         {
-            Indentation++;
+            None,
+            IncAfter,
+            DecBefore,
+            DecBeforeIncAfter,
+            IncTwiceAfter,
+            DecTwiceBefore
         }
 
-        private void DecIndentation()
+        private IndentState indentState = IndentState.None;
+
+        public ByteCodeDecompiler(GameScript script)
         {
-            Indentation--;
+            this.script = script;
+        }
+
+        private void IncIndentation(int num)
+        {
+            Indentation += num;
+        }
+
+        private void DecIndentation(int num)
+        {
+            Indentation -= num;
             if (Indentation < 0 )
             {
                 Indentation = 0;
@@ -28,14 +56,1183 @@ namespace AHT_Triggers.Data
             }
         }
 
-        public string ScriptToString(GameScript script)
+        private string CreateCompareStatement(string val1, string val2, byte oper)
         {
-            return "TEMP";
+            string str = "";
+
+            int o = oper & 0b111;
+            switch (o)
+            {
+                case 1:
+                    str = val1 + " == " + val2;
+                    break;
+                case 2:
+                    str = val1 + " == " + val2;
+                    break;
+                case 3:
+                    str = val1 + " == " + val2;
+                    break;
+                case 4:
+                    str = val1 + " == " + val2;
+                    break;
+                case 5:
+                    str = val1 + " == " + val2;
+                    break;
+                case 6:
+                    str = val1 + " == " + val2;
+                    break;
+            }
+
+            if ((oper & 0b1000) == 1)
+            {
+                str = "NOT " + str;
+            }
+
+            return str;
         }
 
+        private string CreateMathStatement(string val1, string val2, byte oper)
+        {
+            string str = "";
+
+            int o = oper & 0b111;
+            switch (o)
+            {
+                case 1:
+                    str = val1 + " * " + val2;
+                    break;
+                case 2:
+                    str = val1 + " / " + val2;
+                    break;
+                case 3:
+                    str = val1 + " + " + val2;
+                    break;
+                case 4:
+                    str = val1 + " - " + val2;
+                    break;
+                case 5:
+                    str = val1 + " << " + val2;
+                    break;
+                case 6:
+                    str = val1 + " >> " + val2;
+                    break;
+                case 7:
+                    str = val1 + " & " + val2;
+                    break;
+                case 8:
+                    str = val1 + " | " + val2;
+                    break;
+                case 9:
+                    str = val1 + " ^ " + val2;
+                    break;
+                case 10:
+                    str = val1 + " * -" + val2;
+                    break;
+                case 11:
+                    str = val1 + " / -" + val2;
+                    break;
+            }
+
+            return str;
+        }
+
+        private string GetVarName(int i)
+        {
+            if (i < script.NumGlobals)
+            {
+                return "glo" + i;
+            } else
+            {
+                return "loc" + (i - script.NumGlobals);
+            }
+        }
+
+        //Return a string representation of the value, or the hashcode label if one exists for it
+        private string ValToString(int value)
+        {
+            if (Enum.IsDefined(typeof(EXHashCode), (uint)value) && (value != 0))
+            {
+                return ((EXHashCode)value).ToString();
+            } else
+            {
+                return value.ToString();
+            }
+        }
+
+        //Add the indentation to a code line, and increase/decrease accordingly
+        private string AddIndent(string instr)
+        {
+            string str;
+
+            switch (indentState)
+            {
+                case IndentState.None:
+                    str = new string(' ', Indentation * IndentLevel) + instr;
+                    break;
+                case IndentState.IncAfter:
+                    str = new string(' ', Indentation * IndentLevel) + instr;
+                    IncIndentation(1);
+                    break;
+                case IndentState.DecBefore:
+                    DecIndentation(1);
+                    str = new string(' ', Indentation * IndentLevel) + instr;
+                    break;
+                case IndentState.DecBeforeIncAfter:
+                    DecIndentation(1);
+                    str = new string(' ', Indentation * IndentLevel) + instr;
+                    IncIndentation(1);
+                    break;
+                case IndentState.IncTwiceAfter:
+                    str = new string(' ', Indentation * IndentLevel) + instr;
+                    IncIndentation(2);
+                    break;
+                case IndentState.DecTwiceBefore:
+                    DecIndentation(2);
+                    str = new string(' ', Indentation * IndentLevel) + instr;
+                    break;
+                default:
+                    str = "INVALID INDENTATION";
+                    break;
+            }
+
+            if (indentState != IndentState.None)
+            {
+                indentState = IndentState.None;
+            }
+
+            return str;
+        }
+
+        //Take the whole gamescript and turn it into a string representing the interpreted source code
+        public string ScriptToString()
+        {
+            //Clear lists of procedures and labels
+            ProcHeaders.Clear();
+            LabelHeaders.Clear();
+
+            //Keep track of labels we're creating
+            int labelnr = 0;
+
+            //Create list of strings
+            List<string> codeStr = new List<string>();
+
+            //First pass:
+            //Add a string to the list for each line, keep note of labels and procedures as we encounter them
+            for (int i = 0; i<script.NumLines; i++)
+            {
+                //Check for start of procedure
+                foreach (Procedure p in script.Procedures)
+                {
+                    if (p.StartLine == i)
+                    {
+                        //Add indentation after start of procedure
+                        Indentation = 1;
+                        ProcHeaders.Add(i, p.Name);
+
+                        break;
+                    }
+                }
+
+                //Check for goto so we can add labels
+                if (script.Code[i].InstructionID == 0x14)
+                {
+                    //If we've found a new label, add it to the list
+                    if (!LabelHeaders.ContainsKey(script.Code[i].Data4))
+                    {
+                        LabelHeaders.Add(script.Code[i].Data4, "lbl_" + labelnr);
+                        labelnr++;
+                    }
+                }
+
+                //Add string to the list after adding the indentation
+                string str = AddIndent(DecipherCommand(script.Code[i]));
+                codeStr.Add(str);
+            }
+
+            //Second pass:
+            //Add procedure headers and labels
+            //Keep track of how far we've drifted using a variable, so we don't add a line to the wrong place
+            int offs = 0;
+            for (int i = 0; i < script.NumLines; i++)
+            {
+                //Check if a list contains a value at a given line of code (+ the drift), and insert the name if so.
+
+                if (ProcHeaders.ContainsKey(i))
+                {
+                    codeStr.Insert(i + offs, "DEFPROC " + ProcHeaders[i]);
+                    offs++;
+                }
+
+                if (LabelHeaders.ContainsKey(i))
+                {
+                    codeStr.Insert(i + offs, new string(' ', IndentLevel) + "LABEL " + LabelHeaders[i]);
+                    offs++;
+                }
+            }
+
+            //Third pass:
+            //Fill in all lines with a label tag (formatted as "#L[line number]") with the label name instead
+            for (int i = 0; i < codeStr.Count; i++)
+            {
+                string s;
+
+                //Find the index of the tag
+                int n = codeStr[i].IndexOf("#L");
+                if (n < 0) { continue; } //If one doesn't exist, continue
+
+                //Remove everything up to the number
+                s = codeStr[i].Remove(0, n + 2);
+
+                //Check if anything after the number exists, remove if there is
+                n = s.IndexOf(' ');
+                if (n >= 0) {
+                    s = s.Remove(n);
+                }
+
+                //Try to parse a number from the resulting string
+                int lineNum;
+                try
+                {
+                    lineNum = int.Parse(s);
+                } catch
+                {
+                    Console.WriteLine("Invalid number to parse: " + codeStr[i]);
+                    continue;
+                }
+
+                //Check if a label exists at this line number
+                if (!LabelHeaders.ContainsKey(lineNum))
+                {
+                    Console.WriteLine("Line number does not correspond to any label: "+lineNum);
+                    continue;
+                }
+
+                //Replace the tag with the label name
+                codeStr[i] = codeStr[i].Replace("#L" + lineNum, LabelHeaders[lineNum]);
+            }
+
+            //Build string and return it
+            StringBuilder sb = new StringBuilder();
+            foreach (string s in codeStr)
+            {
+                sb.AppendLine(s);
+            }
+
+            return sb.ToString();
+        }
+
+        //Turn an instruction into a string representation of the line of code
         public string DecipherCommand(CodeLine line)
         {
-            return "TEMP";
+            string str;
+            string val;
+
+            switch(line.InstructionID)
+            {
+                //GENERIC
+                case 0x2: // IF <var1> <operator> <var2>
+                    indentState = IndentState.IncAfter;
+                    str = "IF " + CreateCompareStatement(
+                            GetVarName(line.Data2),
+                            GetVarName(line.Data4),
+                            line.Data3
+                        );
+
+                    break;
+                case 0x3: // IF <var> <operator> <value>
+                    indentState = IndentState.IncAfter;
+                    str = "IF " + CreateCompareStatement(
+                            GetVarName(line.Data2),
+                            ValToString(line.Data4),
+                            line.Data3
+                        );
+
+                    break;
+                case 0x4: // AND <var1> <operator> <var2>
+                    indentState = IndentState.DecBeforeIncAfter;
+                    str = " AND " + CreateCompareStatement(
+                            GetVarName(line.Data2),
+                            GetVarName(line.Data4),
+                            line.Data3
+                        );
+
+                    break;
+                case 0x5: // AND <var> <operator> <value>
+                    indentState = IndentState.DecBeforeIncAfter;
+                    str = " AND " + CreateCompareStatement(
+                            GetVarName(line.Data2),
+                            ValToString(line.Data4),
+                            line.Data3
+                        );
+
+                    break;
+                case 0x6: // ELSE
+                    indentState = IndentState.DecBeforeIncAfter;
+                    str = "ELSE";
+
+                    break;
+                case 0x7: // ELSEIF <var1> <operator> <var2>
+                    indentState = IndentState.DecBeforeIncAfter;
+                    str = "ELSEIF " + CreateCompareStatement(
+                            GetVarName(line.Data2),
+                            GetVarName(line.Data4),
+                            line.Data3
+                        );
+
+                    break;
+                case 0x8: // ELSEIF <var> <operator> <value>
+                    indentState = IndentState.DecBeforeIncAfter;
+                    str = "ELSEIF " + CreateCompareStatement(
+                            GetVarName(line.Data2),
+                            ValToString(line.Data4),
+                            line.Data3
+                        );
+
+                    break;
+                case 0x9: // ENDIF
+                    indentState = IndentState.DecBefore;
+                    str = "ENDIF";
+
+                    break;
+                case 0xa: // REPEAT <var/value>
+                    if (line.Data3 == 0)
+                    {
+                        val = GetVarName(line.Data2);
+                    } else
+                    {
+                        val = ValToString(line.Data4);
+                    }
+
+                    indentState = IndentState.IncAfter;
+                    str = "REPEAT " + val;
+
+                    break;
+                case 0xc: // ENDREPEAT
+                    indentState = IndentState.DecBefore;
+                    str = "ENDREPEAT";
+
+                    break;
+                case 0xe: // <var> = <var/value>
+                    if (line.Data3 == 0)
+                    {
+                        if (line.Data4 == 0)
+                        {
+                            str = GetVarName(line.Data1) + " = "+GetVarName(line.Data2);
+                        } else
+                        {
+                            str = GetVarName(line.Data1) + " = -" + GetVarName(line.Data2);
+                        }
+                    } else
+                    {
+                        str = GetVarName(line.Data1) + " = "+ValToString(line.Data4);
+                    }
+
+                    break;
+                case 0x14: // GOTO <line>
+                    str = "GOTO #L" + line.Data4;
+
+                    break;
+                case 0x15: // <var1> = <var2/value> <operator> <var3>
+                    if ((line.Data3 & 0b1000000) != 0)
+                    {
+                        str = GetVarName(line.Data1) + " = " + CreateMathStatement(
+                                ValToString(line.Data4),
+                                GetVarName(line.Data3),
+                                line.Data3
+                            );
+                    } else
+                    {
+                        str = GetVarName(line.Data1) + " = " + CreateMathStatement(
+                                GetVarName(line.Data4),
+                                GetVarName(line.Data3),
+                                line.Data3
+                            );
+                    }
+
+                    break;
+                case 0x16: // <var1> = <var2> <operator> <value>
+                    str = GetVarName(line.Data1) + " = " + CreateMathStatement(
+                            GetVarName(line.Data1),
+                            ValToString(line.Data4),
+                            line.Data3
+                        );
+
+                    break;
+                case 0x17: // <var1> = GETBIT <var2> <value>
+                    if (line.Data4 == 0)
+                    {
+                        val = ValToString(line.Data2);
+                    } else
+                    {
+                        val = GetVarName(line.Data2);
+                    }
+
+                    str = string.Format("{0} = GETBIT {1} {2}",
+                            GetVarName(line.Data3),
+                            GetVarName(line.Data1),
+                            val
+                        );
+
+                    break;
+                case 0x18: // SETBIT <var> <value> <value>
+                    if (line.Data4 == 0)
+                    {
+                        val = ValToString(line.Data2);
+                    }
+                    else
+                    {
+                        val = GetVarName(line.Data2);
+                    }
+
+                    str = string.Format("SETBIT {0} {1} {2}",
+                            GetVarName(line.Data1),
+                            val,
+                            GetVarName(line.Data3)
+                        );
+
+                    break;
+                case 0x1a: // WHILE <var> <operator> <value>
+                    indentState = IndentState.IncAfter;
+                    str = "WHILE " + CreateCompareStatement(GetVarName(line.Data2), ValToString(line.Data4), line.Data3);
+
+                    break;
+                case 0x1b: // ENDWHILE
+                    indentState = IndentState.DecBefore;
+                    str = "ENDWHILE";
+
+                    break;
+                case 0x1e: // ENDPROC <optional var/value>
+                    indentState = IndentState.DecBefore;
+                    if (line.Data1 == 0)
+                    {
+                        str = "ENDPROC";
+                    } else if (line.Data1 == 1)
+                    {
+                        str = "ENDPROC " + ValToString(line.Data4);
+                    } else
+                    {
+                        str = "ENDPROC " + GetVarName(line.Data4);
+                    }
+
+                    break;
+                case 0x20: // <var> = CALLPROC <procedure>
+                    str = GetVarName(line.Data3) + " CALLPROC " + script.Procedures[line.Data1].Name;
+
+                    break;
+                case 0x21: // <var> = INSTANCE <procedure>
+                    str = GetVarName(line.Data3) + " INSTANCE " + script.Procedures[line.Data1].Name;
+
+                    break;
+                case 0x22: // BREAK
+                    str = "BREAK";
+
+                    break;
+                case 0x24: // CASE <value/hash>
+                    indentState = IndentState.DecBeforeIncAfter;
+                    str = "CASE "+ValToString(line.Data4);
+
+                    break;
+                case 0x25: // SWITCH <var>
+                    indentState = IndentState.IncTwiceAfter;
+                    str = "SWITCH "+GetVarName(line.Data2);
+
+                    break;
+                case 0x27: // ENDSWITCH
+                    indentState = IndentState.DecTwiceBefore;
+                    str = "ENDSWITCH";
+
+                    break;
+                case 0x28: // <var1> = RAND <var2/value>
+                    if (line.Data3 == 0)
+                    {
+                        val = GetVarName(line.Data2);
+                    } else
+                    {
+                        val = ValToString(line.Data4);
+                    }
+
+                    str = GetVarName(line.Data4) + " = RAND " + val;
+
+                    break;
+                case 0x2a: // WAIT <var/value>
+                    if (line.Data3 == 0)
+                    {
+                        val = GetVarName(line.Data4);
+                    }
+                    else
+                    {
+                        val = ValToString(line.Data4);
+                    }
+
+                    str = "WAIT " + val;
+
+                    break;
+                case 0x2b: // WAIT <value>
+                    str = "WAIT " + ValToString(line.Data4);
+
+                    break;
+                case 0x2c: // <var> = GETFRAMECOUNT <scope>
+                    str = GetVarName(line.Data4) + " = GETFRAMECOUNT";
+
+                    if (line.Data2 != 0)
+                    {
+                        str += " local";
+                    }
+
+                    break;
+                case 0x2d: // SETFRAMECOUNT <var/value> <scope>
+                    if (line.Data3 == 0)
+                    {
+                        val = GetVarName(line.Data1);
+                    } else
+                    {
+                        val = ValToString(line.Data4);
+                    }
+
+                    str = "SETFRAMECOUNT " + val;
+
+                    if (line.Data2 != 0)
+                    {
+                        str += " local";
+                    }
+
+                    break;
+                case 0x30: // SUSPEND <procedure>
+                    str = "SUSPEND ";
+
+                    if (line.Data1 == 0xFE)
+                    {
+                        str += "ALL";
+                    } else
+                    {
+                        str += script.Procedures[line.Data1].Name;
+                    }
+
+                    break;
+                case 0x31: // RESUME <procedure>
+                    str = "RESUME ";
+
+                    if (line.Data1 == 0xFE)
+                    {
+                        str += "ALL";
+                    }
+                    else
+                    {
+                        str += script.Procedures[line.Data1].Name;
+                    }
+
+                    break;
+                case 0x32: // RESET <procedure>
+                    str = "RESET ";
+
+                    if (line.Data1 == 0xFE)
+                    {
+                        str += "ALL";
+                    }
+                    else
+                    {
+                        str += script.Procedures[line.Data1].Name;
+                    }
+
+                    break;
+                case 0x33: // KILL <procedure>
+                    str = "KILL ";
+
+                    if (line.Data1 == 0xFE)
+                    {
+                        str += "ALL";
+                    }
+                    else
+                    {
+                        str += script.Procedures[line.Data1].Name;
+                    }
+
+                    break;
+                case 0x34: // <var> = ISRUNNING <procedure>
+                    str = GetVarName(line.Data3) + " = ISRUNNING " + script.Procedures[line.Data1].Name;
+
+                    break;
+       /*TODO*/ case 0x38: // DEFARRAY <array>
+                    str = "DEFARRAY temp_arrname (size = "+line.Data4+")";
+
+                    break;
+       /*TODO*/ case 0x3a: // <var> = GETARRAY <array> <index>
+                    if ((line.Data4 & 0x10000) == 1)
+                    {
+                        val = GetVarName(line.Data4);
+                    } else
+                    {
+                        val = "temp_arrname";
+                    }
+
+                    str = GetVarName(line.Data3) + " = GETARRAY " + val + " ";
+
+                    if (line.Data2 == 0)
+                    {
+                        str += GetVarName(line.Data1);
+                    } else
+                    {
+                        str += ValToString(line.Data1);
+                    }
+
+                    break;
+       /*TODO*/ case 0x3b: // SETARRAY <array> <index> <value>
+                    if ((line.Data4 & 0x10000) == 1)
+                    {
+                        val = GetVarName(line.Data4);
+                    }
+                    else
+                    {
+                        val = "temp_arrname";
+                    }
+
+                    str = "SETARRAY " + val + " ";
+
+                    if ((line.Data3 & 1) == 0)
+                    {
+                        str += GetVarName(line.Data1) + " ";
+                    } else
+                    {
+                        str += ValToString(line.Data1) + " ";
+                    }
+
+                    if ((line.Data3 & 2) == 0)
+                    {
+                        str += GetVarName(line.Data2);
+                    } else
+                    {
+                        str += ValToString(line.Data2);
+                    }
+
+                    break;
+                case 0x3c: // EXCLUSIVE <value>
+                    str = "EXCLUSIVE "+ValToString(line.Data1);
+
+                    break;
+
+                //GAME-SPECIFIC
+                case 0x3d: // <var> = GETOBJECTIVE <hash>
+                    str = GetVarName(line.Data3) + " = GETOBJECTIVE " + ValToString(line.Data4);
+
+                    break;
+                case 0x3e: // SETOBJECTIVE <hash>
+                    str = "GETOBJECTIVE " + ValToString(line.Data4);
+
+                    break;
+                case 0x40: // SETANIM <hash>
+                    if (line.Data4 < 0xFF)
+                    {
+                        val = GetVarName(line.Data4);
+                    } else
+                    {
+                        val = ValToString(line.Data4);
+                    }
+
+                    str = "SETANIM " + val;
+
+                    break;
+                case 0x41: // NEXTANIM <hash>
+                    if (line.Data4 < 0xFF)
+                    {
+                        val = GetVarName(line.Data4);
+                    }
+                    else
+                    {
+                        val = ValToString(line.Data4);
+                    }
+
+                    str = "NEXTANIM " + val;
+
+                    break;
+                case 0x44: // <var> = GETDISTANCETOPLAYER
+                    str = GetVarName(line.Data3) + " = GETDISTANCETOPLAYER";
+
+                    break;
+                case 0x45: // TURNANDFACEPLAYER
+                    str = "TURNANDFACEPLAYER";
+
+                    break;
+                case 0x46: // <var> = ISFACINGPLAYER
+                    str = GetVarName(line.Data3) + " = ISFACINGPLAYER";
+
+                    break;
+                case 0x47: // <var> = ISFACINGPLAYERSTRICT
+                    str = GetVarName(line.Data3) + " = ISFACINGPLAYERSTRICT";
+
+                    break;
+                case 0x48: // STOPMOVING
+                    str = "STOPMOVING";
+
+                    break;
+                case 0x49: // PRINTMESSAGE <hash>
+                    str = "PRINTMESSAGE " + ValToString(line.Data4);
+
+                    break;
+                case 0x4a: // KILLMESSAGE <hash>
+                    str = "KILLMESSAGE " + ValToString(line.Data4);
+
+                    break;
+                case 0x4b: // TALKTOPLAYER <value>
+                    str = "TALKTOPLAYER " + ValToString(line.Data4);
+
+                    break;
+                case 0x4c: // FORCETALK
+                    str = "FORCETALK";
+
+                    break;
+                case 0x4d: // WALKTOPOINT <var>
+                    str = "WALKTOPOINT " + GetVarName(line.Data1);
+
+                    break;
+                case 0x4e: // WALKTOPOINT <value>
+                    str = "WALKTOPOINT " + ValToString(line.Data1);
+
+                    break;
+                case 0x4f: // <var1> = GETDISTANCETOPATHNODE <var2>
+                    str = GetVarName(line.Data3) + " = GETDISTANCETOPATHNODE " + GetVarName(line.Data1);
+
+                    break;
+                case 0x50: // <var1> = GETDISTANCETOPATHNODE <value>
+                    str = GetVarName(line.Data3) + " = GETDISTANCETOPATHNODE " + ValToString(line.Data1);
+
+                    break;
+                case 0x51: // <var> = GETNUMBEROFPATHNODES
+                    str = GetVarName(line.Data3) + " = GETNUMBEROFPATHNODES";
+
+                    break;
+                case 0x52: // TURNTOPATHNODE <var>
+                    str = "TURNTOPATHNODE " + GetVarName(line.Data1);
+
+                    break;
+                case 0x53: // TURNTOPATHNODE <value>
+                    str = "TURNTOPATHNODE " + ValToString(line.Data1);
+
+                    break;
+                case 0x54: // Unused
+                    str = "UNUSED";
+
+                    break;
+                case 0x55: // TALKINDICATOR <value>
+                    str = "TALKINDICATOR " + ValToString(line.Data4);
+
+                    break;
+                case 0x56: // CUTSEQUENCE <value/hash>
+                    if ((line.Data4 & 0xFF000000) != 0)
+                    {
+                        val = ValToString(line.Data4);
+                    } else
+                    {
+                        val = GetVarName(line.Data4);
+                    }
+
+                    str = "CUTSEQUENCE " + val;
+
+                    break;
+                case 0x57: // CAMERASTORE
+                    str = "CAMERASTORE";
+
+                    break;
+                case 0x58: // CAMERARESTORE
+                    str = "CAMERARESTORE";
+
+                    break;
+                case 0x59: // CAMERAMOVESCRIPTPATH <hash>
+                    str = "CAMERAMOVESCRIPTPATH " + ValToString(line.Data4);
+
+                    break;
+                case 0x5a: // LOCKCONTROLS <value>
+                    str = "LOCKCONTROLS " + ValToString(line.Data4);
+
+                    break;
+                case 0x5b: // ACTIVATETASK <hash>
+                    str = "ACTIVATETASK " + ValToString(line.Data4);
+
+                    break;
+                case 0x5c: // ACHIEVETASK <hash>
+                    str = "ACHIEVETASK " + ValToString(line.Data4);
+
+                    break;
+                case 0x5e: // <var> = ISRESTARTPOINTSET <hash>
+                    str = GetVarName(line.Data3) + " = ISRESTARTPOINTSET " + ValToString(line.Data4);
+
+                    break;
+                case 0x5f: // <var> = ISRESTARTPOINTVISITED <hash>
+                    str = GetVarName(line.Data3) + " = ISRESTARTPOINTVISITED " + ValToString(line.Data4);
+
+                    break;
+                case 0x60: // SETRESTARTPOINT <hash>
+                    str = "SETRESTARTPOINT " + ValToString(line.Data4);
+
+                    break;
+                case 0x61: // WAITFORCANCHANGEANIM
+                    str = "WAITFORCANCHANGEANIM";
+
+                    break;
+                case 0x62: // REACT <value>
+                    str = "REACT " + ValToString(line.Data4);
+
+                    break;
+                case 0x63: // SENDVALUE <ref> <value>
+                    str = "SENDVALUE " + ValToString(line.Data4) + " " + ValToString(line.Data1);
+
+                    break;
+                case 0x64: // SENDTOALL <value>
+                    str = "SENDTOALL " + ValToString(line.Data4);
+
+                    break;
+                case 0x65: // HEADTRACKING <value>
+                    str = "HEADTRACKING " + ValToString(line.Data4);
+
+                    break;
+                case 0x66: // TALKCAMERA <value>
+                    str = "TALKCAMERA " + ValToString(line.Data4);
+
+                    break;
+                case 0x67: // HEROTOTALKDIST <value>
+                    str = "HEROTOTALKDIST " + ValToString(line.Data4);
+
+                    break;
+                case 0x68: // SUICIDE
+                    str = "SUICIDE";
+
+                    break;
+                case 0x69: // STARTSOUND <hash>
+                    str = "STARTSOUND " + ValToString(line.Data4);
+
+                    break;
+                case 0x6a: // PLAYSCRIPT
+                    str = "PLAYSCRIPT";
+
+                    break;
+                case 0x6b: // PAUSESCRIPT
+                    str = "PAUSESCRIPT";
+
+                    break;
+                case 0x6c: // RESUMESCRIPT
+                    str = "RESUMESCRIPT";
+
+                    break;
+                case 0x6d: // KILLSCRIPT
+                    str = "KILLSCRIPT";
+
+                    break;
+                case 0x6e: // SETFILEHASH <hash>
+                    str = "SETFILEHASH " + ValToString(line.Data4);
+
+                    break;
+                case 0x6f: // YESNOBOX <hash>
+                    str = "YESNOBOX " + ValToString(line.Data4);
+
+                    break;
+                case 0x70: // HEROTOLINKEDPOINT <ref>
+                    str = "HEROTOLINKEDPOINT " + ValToString(line.Data4);
+
+                    break;
+                case 0x71: // SETBLENDDEPTH <value>
+                    str = "SETBLENDDEPTH " + ValToString(line.Data4);
+
+                    break;
+                case 0x72: // HEROTOPATH <value/hash?>
+                    str = "HEROTOPATH " + ValToString(line.Data4);
+
+                    break;
+                case 0x73: // ENABLEENTITY <hash>
+                    str = "ENABLEENTITY " + ValToString(line.Data4);
+
+                    break;
+                case 0x74: // DISABLEENTITY <hash>
+                    str = "DISABLEENTITY " + ValToString(line.Data4);
+
+                    break;
+                case 0x75: // CHANGEHERO <value/hash?>
+                    str = "CHANGEHERO " + ValToString(line.Data4);
+
+                    break;
+                case 0x76: // VISIBILITY <value>
+                    str = "VISIBILITY " + ValToString(line.Data4);
+
+                    break;
+                case 0x77: // PUTHEROHERE
+                    str = "PUTHEROHERE";
+
+                    break;
+                case 0x78: // CLEAROBJECTIVE <hash>
+                    str = "CLEAROBJECTIVE " + ValToString(line.Data4);
+
+                    break;
+                case 0x79: // GIVEGEMSTOHERO <value>
+                    str = "GIVEGEMSTOHERO " + ValToString(line.Data4);
+
+                    break;
+                case 0x7a: // TAKEGEMSFROMHERO <value>
+                    str = "TAKEGEMSFROMHERO " + ValToString(line.Data4);
+
+                    break;
+                case 0x7b: // <var> = HOWMANYGEMS
+                    str = GetVarName(line.Data3) + " = HOWMANYGEMS";
+
+                    break;
+                case 0x7c: // GIVEEGGTOHERO <value>
+                    str = "GIVEEGGTOHERO " + ValToString(line.Data4);
+
+                    break;
+                case 0x7d: // TAKEEGGFROMHERO <value>
+                    str = "TAKEEGGFROMHERO " + ValToString(line.Data4);
+
+                    break;
+                case 0x7e: // <var> = HOWMANYEGGS
+                    str = GetVarName(line.Data3) + " = HOWMANYEGGS";
+
+                    break;
+                case 0x7f: // GIVELIGHTGEMSTOHERO <value>
+                    str = "GIVELIGHTGEMSTOHERO " + ValToString(line.Data4);
+
+                    break;
+                case 0x80: // TAKELIGHTGEMSFROMHERO <value>
+                    str = "TAKELIGHTGEMSFROMHERO " + ValToString(line.Data4);
+
+                    break;
+                case 0x81: // <var> = HOWMANYLIGHTGEMS
+                    str = GetVarName(line.Data3) + " = HOWMANYLIGHTGEMS";
+
+                    break;
+                case 0x82: // VISUALLYGIVEDRAGONEGG <hash>
+                    str = "VISUALLYGIVEDRAGONEGG " + ValToString(line.Data4);
+
+                    break;
+                case 0x83: // VISUALLYGIVELIGHTGEM
+                    str = "VISUALLYGIVELIGHTGEM";
+
+                    break;
+                case 0x84: // ZOOPOO <hash>
+                    str = "ZOOPOO " + ValToString(line.Data4);
+
+                    break;
+                case 0x85: // SETPANELCLOCKTIME <value>
+                    str = "SETPANELCLOCKTIME " + ValToString(line.Data4);
+
+                    break;
+                case 0x86: // PANELCLOCK <value>
+                    str = "PANELCLOCK " + ValToString(line.Data4);
+
+                    break;
+                case 0x87: // ADDPANELCLOCKTIME <value>
+                    str = "ADDPANELCLOCKTIME " + ValToString(line.Data4);
+
+                    break;
+                case 0x88: // SUBPANELCLOCKTIME <value>
+                    str = "SUBPANELCLOCKTIME " + ValToString(line.Data4);
+
+                    break;
+                case 0x89: // MAPPLACEMENTON <hash>
+                    str = "MAPPLACEMENTON " + ValToString(line.Data4);
+
+                    break;
+                case 0x8a: // MAPPLACEMENTOFF <hash>
+                    str = "MAPPLACEMENTOFF " + ValToString(line.Data4);
+
+                    break;
+                case 0x8b: // LOADHERO <hash>
+                    str = "LOADHERO " + ValToString(line.Data4);
+
+                    break;
+                case 0x8c: // UNLOADHERO <hash>
+                    str = "UNLOADHERO " + ValToString(line.Data4);
+
+                    break;
+                case 0x8d: // <var> = ISHEROLOADED <hash>
+                    str = GetVarName(line.Data3) + " = ISHEROLOADED " + ValToString(line.Data4);
+
+                    break;
+                case 0x8e: // LOADFILE <hash>
+                    str = "LOADFILE " + ValToString(line.Data4);
+
+                    break;
+                case 0x8f: // UNLOADFILE <hash>
+                    str = "UNLOADFILE " + ValToString(line.Data4);
+
+                    break;
+                case 0x90: // <var> = ISFILELOADED <hash>
+                    str = GetVarName(line.Data3) + " = ISFILELOADED " + ValToString(line.Data4);
+
+                    break;
+                case 0x91: // GAMETIMEOUT <value> (this does nothing)
+                    str = "GAMETIMEOUT " + ValToString(line.Data4);
+
+                    break;
+                case 0x92: // HEROVISIBLE <value>
+                    str = "HEROVISIBLE " + ValToString(line.Data4);
+
+                    break;
+                case 0x93: // SPARXVISIBLE <value>
+                    str = "SPARXVISIBLE " + ValToString(line.Data4);
+
+                    break;
+                case 0x94: // GOTOMAP <hash>
+                    str = "GOTOMAP " + ValToString(line.Data4);
+
+                    break;
+                case 0x95: // SPARXCHAT <hash>
+                    str = "SPARXCHAT " + ValToString(line.Data4);
+
+                    break;
+                case 0x96: // MOVESPARXALONGPATH <hash>
+                    str = "MOVESPARXALONGPATH " + ValToString(line.Data4);
+
+                    break;
+                case 0x97: // LETSGOSHOPPING
+                    str = "LETSGOSHOPPING";
+
+                    break;
+                case 0x98: // MAPFADEPAUSE <value>
+                    str = "MAPFADEPAUSE " + ValToString(line.Data4);
+
+                    break;
+                case 0x99: // LOADCUTSEQUENCEFILES <value/hash>
+                    if ((line.Data4 & 0xFF000000) != 0)
+                    {
+                        val = ValToString(line.Data4);
+                    }
+                    else
+                    {
+                        val = GetVarName(line.Data4);
+                    }
+
+                    str = "LOADCUTSEQUENCEFILES " + val;
+
+                    break;
+                case 0x9a: // UNLOADCUTSEQUENCEFILES <value/hash>
+                    if ((line.Data4 & 0xFF000000) != 0)
+                    {
+                        val = ValToString(line.Data4);
+                    }
+                    else
+                    {
+                        val = GetVarName(line.Data4);
+                    }
+
+                    str = "UNLOADCUTSEQUENCEFILES " + val;
+
+                    break;
+                case 0x9b: // <var> = ARECUTSEQUENCEFILESLOADED <value/hash>
+                    if ((line.Data4 & 0xFF000000) != 0)
+                    {
+                        val = ValToString(line.Data4);
+                    }
+                    else
+                    {
+                        val = GetVarName(line.Data4);
+                    }
+
+                    str = GetVarName(line.Data3) + " = ARECUTSEQUENCEFILESLOADED " + val;
+
+                    break;
+                case 0x9c: // RESTARTMAP
+                    str = "RESTARTMAP";
+
+                    break;
+                case 0x9d: // <var> = GETMAPSTATE
+                    str = GetVarName(line.Data3) + " = GETMAPSTATE";
+
+                    break;
+                case 0x9e: // <var> = ISSAFETOTALK
+                    str = GetVarName(line.Data3) + " = ISSAFETOTALK";
+
+                    break;
+                case 0x9f: // PROGRESSCOUNTER <value>
+                    str = "PROGRESSCOUNTER " + ValToString(line.Data4);
+
+                    break;
+                case 0xa0: // SETPROGRESS <value>
+                    str = "SETPROGRESS " + ValToString(line.Data4);
+
+                    break;
+                case 0xa1: // SETMAXPROGRESS <value>
+                    str = "SETMAXPROGRESS " + ValToString(line.Data4);
+
+                    break;
+                case 0xa2: // INCPROGRESS <value>
+                    str = "INCPROGRESS " + ValToString(line.Data4);
+
+                    break;
+                case 0xa3: // DECPROGRESS <value>
+                    str = "DECPROGRESS " + ValToString(line.Data4);
+
+                    break;
+                case 0xa4: // <var> = GETPROGRESS
+                    str = GetVarName(line.Data3) + " = GETPROGRESS";
+
+                    break;
+                case 0xa5: // GIVELOCKPICKSTOHERO <value>
+                    str = "GIVELOCKPICKSTOHERO " + ValToString(line.Data4);
+
+                    break;
+                case 0xa6: // TAKELOCKPICKSFROMHERO <value>
+                    str = "TAKELOCKPICKSFROMHERO " + ValToString(line.Data4);
+
+                    break;
+                case 0xa7: // <var> = HOWMANYLOCKPICKS
+                    str = GetVarName(line.Data3) + " = HOWMANYLOCKPICKS";
+
+                    break;
+                case 0xa8: // <var> = ISTHEREANEWSHOPITEM
+                    str = GetVarName(line.Data3) + " = ISTHEREANEWSHOPITEM";
+
+                    break;
+                case 0xa9: // CUTSEQUENCEWITHTRIGGERS
+                    str = "CUTSEQUENCEWITHTRIGGERS";
+
+                    break;
+                case 0xaa: // RESETTIMER
+                    str = "RESETTIMER";
+
+                    break;
+                case 0xab: // <var> = GETELAPSEDTIME
+                    str = GetVarName(line.Data3) + " = GETELAPSEDTIME";
+
+                    break;
+                case 0xac: // <var> = HEROCHARACTER
+                    str = GetVarName(line.Data3) + " = HEROCHARACTER";
+
+                    break;
+                case 0xad: // LOADMAP = <hash>
+                    str = "LOADMAP " + ValToString(line.Data4);
+
+                    break;
+                case 0xae: // CLOSEMAP = <hash>
+                    str = "CLOSEMAP " + ValToString(line.Data4);
+
+                    break;
+                case 0xaf: // <var> = ISMAPLOADED <hash>
+                    str = GetVarName(line.Data3) + " = ISMAPLOADED " + ValToString(line.Data4);
+
+                    break;
+                case 0xb0: // FADEDOWN <value>
+                    str = "FADEDOWN " + ValToString(line.Data4);
+
+                    break;
+                case 0xb1: // FADEUP <value>
+                    str = "FADEUP " + ValToString(line.Data4);
+
+                    break;
+                case 0xb2: // PREVENTTALK <value>
+                    str = "PREVENTTALK " + ValToString(line.Data4);
+
+                    break;
+                case 0xb3: // STALL (Does nothing)
+                    str = "STALL";
+
+                    break;
+                case 0xb4: // <var> = HEROSTATUS
+                    str = GetVarName(line.Data3) + " = HEROSTATUS";
+
+                    break;
+                default:
+                    str = string.Format("UNK! 0x{0:X}", line.InstructionID);
+                    break;
+            }
+
+            return str;
         }
     }
 }
