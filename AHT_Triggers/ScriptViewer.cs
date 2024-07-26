@@ -63,7 +63,7 @@ namespace AHT_Triggers
             foreach (string s in Syntax.SYNTAX_KEYWORDS)
             {
                 p = 0;
-                while ((p = Txt_ScriptCode.Find(s, p, RichTextBoxFinds.None)) >= 0)
+                while ((p = Txt_ScriptCode.Find(s, p, RichTextBoxFinds.MatchCase)) >= 0)
                 {
                     Txt_ScriptCode.SelectionStart = p;
                     Txt_ScriptCode.SelectionLength = s.Length;
@@ -81,6 +81,10 @@ namespace AHT_Triggers
 
                 //Get index of nearest space or newline, whichever is first
                 int n = Math.Min(s.IndexOf(' '), s.IndexOf('\n'));
+                if (n < 0) { //Not sure how this could happen
+                    p += 1;
+                    continue;
+                }
 
                 s = s.Remove(n);
 

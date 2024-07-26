@@ -26,8 +26,8 @@ namespace AHT_Triggers.Data
         private int IndentLevel = 2;
 
         //Lists to keep track of information regarding variables during the script decompile
-        List<LocalVar> TrackedLocals;
-        List<int>      TrackedGlobals;
+        private List<LocalVar> TrackedLocals;
+        private List<int>      TrackedGlobals;
         private bool TrackVars = false;
 
         //Key is line number, value is name
@@ -46,6 +46,12 @@ namespace AHT_Triggers.Data
             IncTwiceAfter,
             DecTwiceBefore
         }
+
+        private static readonly Dictionary<int, string> LVAR_NAMES = new Dictionary<int, string>
+        {
+            [5]  = "yesNoBoxResult",
+            [15] = "procReturn"
+        };
 
         private IndentState indentState = IndentState.None;
 
@@ -81,19 +87,19 @@ namespace AHT_Triggers.Data
                     str = val1 + " == " + val2;
                     break;
                 case 2:
-                    str = val1 + " == " + val2;
+                    str = val1 + " > " + val2;
                     break;
                 case 3:
-                    str = val1 + " == " + val2;
+                    str = val1 + " >= " + val2;
                     break;
                 case 4:
-                    str = val1 + " == " + val2;
+                    str = val1 + " < " + val2;
                     break;
                 case 5:
-                    str = val1 + " == " + val2;
+                    str = val1 + " <= " + val2;
                     break;
                 case 6:
-                    str = val1 + " == " + val2;
+                    str = val1 + " != " + val2;
                     break;
             }
 
@@ -187,12 +193,24 @@ namespace AHT_Triggers.Data
         {
             if (TrackVars) { TrackVar(i); }
 
-            if (i < script.NumGlobals)
+            if (i >= script.NumGlobals)
             {
-                return "glo" + i;
+                //Local variable
+                return "loc" + (i - script.NumGlobals);
+            } else if (i > 23)
+            {
+                //Global variable (outside procedure scope)
+                return "glo" + (i - 24);
             } else
             {
-                return "loc" + (i - script.NumGlobals);
+                //Language variable (reserved for specific things)
+                if (LVAR_NAMES.ContainsKey(i))
+                {
+                    return LVAR_NAMES[i];
+                } else
+                {
+                    return "lvar" + i;
+                }
             }
         }
 
@@ -379,7 +397,7 @@ namespace AHT_Triggers.Data
                 }
 
                 //Take any line with "AND" and stick it onto the line before, then delete the original line
-                if (codeStr[i].IndexOf("AND") >= 0)
+                if (codeStr[i].IndexOf(" AND") >= 0)
                 {
                     codeStr[i - 1] += " " + codeStr[i].Trim();
                     codeStr.RemoveAt(i);
@@ -668,7 +686,7 @@ namespace AHT_Triggers.Data
                         val = ValToString(line.Data4);
                     }
 
-                    str = GetVarName(line.Data4) + " = RAND " + val;
+                    str = GetVarName(line.Data1) + " = RAND " + val;
 
                     break;
                 case 0x2a: // WAIT <var/value>
