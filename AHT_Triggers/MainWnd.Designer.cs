@@ -56,6 +56,7 @@
             this.Box_TriggerLinks = new System.Windows.Forms.GroupBox();
             this.Lbl_TriggerLinks = new System.Windows.Forms.Label();
             this.Box_TriggerData = new System.Windows.Forms.GroupBox();
+            this.label1 = new System.Windows.Forms.Label();
             this.Lbl_TriggerData = new System.Windows.Forms.Label();
             this.Lbl_ScaleZ = new System.Windows.Forms.Label();
             this.Lbl_ScaleZDesc = new System.Windows.Forms.Label();
@@ -80,7 +81,6 @@
             this.Lbl_PosDesc = new System.Windows.Forms.Label();
             this.Lbl_TrigFlags = new System.Windows.Forms.Label();
             this.Lbl_TrigFlagsDesc = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
             this.Btn_LoadFile = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -134,7 +134,7 @@
             this.groupBox2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.groupBox2.Location = new System.Drawing.Point(12, 175);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(399, 492);
+            this.groupBox2.Size = new System.Drawing.Size(399, 597);
             this.groupBox2.TabIndex = 2;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Triggers";
@@ -153,7 +153,7 @@
             this.List_Triggers.Location = new System.Drawing.Point(7, 20);
             this.List_Triggers.MultiSelect = false;
             this.List_Triggers.Name = "List_Triggers";
-            this.List_Triggers.Size = new System.Drawing.Size(386, 466);
+            this.List_Triggers.Size = new System.Drawing.Size(386, 571);
             this.List_Triggers.TabIndex = 0;
             this.List_Triggers.UseCompatibleStateImageBehavior = false;
             this.List_Triggers.View = System.Windows.Forms.View.Details;
@@ -296,7 +296,7 @@
             this.Box_TriggerInfo.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Box_TriggerInfo.Location = new System.Drawing.Point(417, 12);
             this.Box_TriggerInfo.Name = "Box_TriggerInfo";
-            this.Box_TriggerInfo.Size = new System.Drawing.Size(693, 655);
+            this.Box_TriggerInfo.Size = new System.Drawing.Size(702, 760);
             this.Box_TriggerInfo.TabIndex = 10;
             this.Box_TriggerInfo.TabStop = false;
             this.Box_TriggerInfo.Text = "Trigger Information";
@@ -304,7 +304,7 @@
             // 
             // Btn_ViewGameScript
             // 
-            this.Btn_ViewGameScript.Location = new System.Drawing.Point(208, 562);
+            this.Btn_ViewGameScript.Location = new System.Drawing.Point(23, 379);
             this.Btn_ViewGameScript.Name = "Btn_ViewGameScript";
             this.Btn_ViewGameScript.Size = new System.Drawing.Size(145, 30);
             this.Btn_ViewGameScript.TabIndex = 41;
@@ -316,7 +316,7 @@
             // 
             this.Lbl_GeoHash.AutoSize = true;
             this.Lbl_GeoHash.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_GeoHash.Location = new System.Drawing.Point(334, 505);
+            this.Lbl_GeoHash.Location = new System.Drawing.Point(133, 320);
             this.Lbl_GeoHash.Name = "Lbl_GeoHash";
             this.Lbl_GeoHash.Size = new System.Drawing.Size(45, 20);
             this.Lbl_GeoHash.TabIndex = 40;
@@ -326,7 +326,7 @@
             // 
             this.Lbl_GeoHashDesc.AutoSize = true;
             this.Lbl_GeoHashDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_GeoHashDesc.Location = new System.Drawing.Point(204, 505);
+            this.Lbl_GeoHashDesc.Location = new System.Drawing.Point(6, 320);
             this.Lbl_GeoHashDesc.Name = "Lbl_GeoHashDesc";
             this.Lbl_GeoHashDesc.Size = new System.Drawing.Size(121, 20);
             this.Lbl_GeoHashDesc.TabIndex = 39;
@@ -336,7 +336,7 @@
             // 
             this.Lbl_GFXHash.AutoSize = true;
             this.Lbl_GFXHash.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_GFXHash.Location = new System.Drawing.Point(334, 485);
+            this.Lbl_GFXHash.Location = new System.Drawing.Point(133, 300);
             this.Lbl_GFXHash.Name = "Lbl_GFXHash";
             this.Lbl_GFXHash.Size = new System.Drawing.Size(45, 20);
             this.Lbl_GFXHash.TabIndex = 38;
@@ -346,7 +346,7 @@
             // 
             this.Lbl_GFXHashDesc.AutoSize = true;
             this.Lbl_GFXHashDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_GFXHashDesc.Location = new System.Drawing.Point(204, 485);
+            this.Lbl_GFXHashDesc.Location = new System.Drawing.Point(6, 300);
             this.Lbl_GFXHashDesc.Name = "Lbl_GFXHashDesc";
             this.Lbl_GFXHashDesc.Size = new System.Drawing.Size(124, 20);
             this.Lbl_GFXHashDesc.TabIndex = 37;
@@ -356,7 +356,7 @@
             // 
             this.Lbl_Tint.AutoSize = true;
             this.Lbl_Tint.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_Tint.Location = new System.Drawing.Point(334, 525);
+            this.Lbl_Tint.Location = new System.Drawing.Point(133, 340);
             this.Lbl_Tint.Name = "Lbl_Tint";
             this.Lbl_Tint.Size = new System.Drawing.Size(45, 20);
             this.Lbl_Tint.TabIndex = 36;
@@ -366,7 +366,7 @@
             // 
             this.Lbl_TintDesc.AutoSize = true;
             this.Lbl_TintDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_TintDesc.Location = new System.Drawing.Point(204, 525);
+            this.Lbl_TintDesc.Location = new System.Drawing.Point(6, 340);
             this.Lbl_TintDesc.Name = "Lbl_TintDesc";
             this.Lbl_TintDesc.Size = new System.Drawing.Size(39, 20);
             this.Lbl_TintDesc.TabIndex = 35;
@@ -374,10 +374,12 @@
             // 
             // Box_TriggerLinks
             // 
+            this.Box_TriggerLinks.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.Box_TriggerLinks.Controls.Add(this.Lbl_TriggerLinks);
-            this.Box_TriggerLinks.Location = new System.Drawing.Point(198, 308);
+            this.Box_TriggerLinks.Location = new System.Drawing.Point(429, 427);
             this.Box_TriggerLinks.Name = "Box_TriggerLinks";
-            this.Box_TriggerLinks.Size = new System.Drawing.Size(183, 174);
+            this.Box_TriggerLinks.Size = new System.Drawing.Size(267, 327);
             this.Box_TriggerLinks.TabIndex = 34;
             this.Box_TriggerLinks.TabStop = false;
             this.Box_TriggerLinks.Text = "Links";
@@ -393,14 +395,26 @@
             // 
             // Box_TriggerData
             // 
+            this.Box_TriggerData.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.Box_TriggerData.Controls.Add(this.label1);
             this.Box_TriggerData.Controls.Add(this.Lbl_TriggerData);
-            this.Box_TriggerData.Location = new System.Drawing.Point(12, 308);
+            this.Box_TriggerData.Location = new System.Drawing.Point(12, 427);
             this.Box_TriggerData.Name = "Box_TriggerData";
-            this.Box_TriggerData.Size = new System.Drawing.Size(179, 320);
+            this.Box_TriggerData.Size = new System.Drawing.Size(411, 327);
             this.Box_TriggerData.TabIndex = 33;
             this.Box_TriggerData.TabStop = false;
             this.Box_TriggerData.Text = "Data";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(8, 24);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(34, 288);
+            this.label1.TabIndex = 1;
+            this.label1.Text = "0x0\r\n0x1\r\n0x2\r\n0x3\r\n0x4\r\n0x5\r\n0x6\r\n0x7\r\n0x8\r\n0x9\r\n0xA\r\n0xB\r\n0xC\r\n0xD\r\n0xE\r\n0xF\r\n";
             // 
             // Lbl_TriggerData
             // 
@@ -642,15 +656,6 @@
             this.Lbl_TrigFlagsDesc.TabIndex = 10;
             this.Lbl_TrigFlagsDesc.Text = "Trigger Flags:";
             // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(8, 24);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(34, 288);
-            this.label1.TabIndex = 1;
-            this.label1.Text = "0x0\r\n0x1\r\n0x2\r\n0x3\r\n0x4\r\n0x5\r\n0x6\r\n0x7\r\n0x8\r\n0x9\r\n0xA\r\n0xB\r\n0xC\r\n0xD\r\n0xE\r\n0xF\r\n";
-            // 
             // Btn_LoadFile
             // 
             this.Btn_LoadFile.Location = new System.Drawing.Point(11, 5);
@@ -665,7 +670,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1122, 679);
+            this.ClientSize = new System.Drawing.Size(1131, 784);
             this.Controls.Add(this.Btn_LoadFile);
             this.Controls.Add(this.Box_TriggerInfo);
             this.Controls.Add(this.groupBox2);

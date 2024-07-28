@@ -243,7 +243,7 @@
             this.Controls.Add(this.TabCtrl_Script);
             this.Controls.Add(this.Box_ScriptInfo);
             this.Name = "ScriptViewer";
-            this.Text = "ScriptViewer";
+            this.Text = "Script Viewer";
             this.Load += new System.EventHandler(this.ScriptViewer_Load);
             this.Box_ScriptInfo.ResumeLayout(false);
             this.Box_ScriptInfo.PerformLayout();

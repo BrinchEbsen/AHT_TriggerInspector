@@ -108,6 +108,28 @@ namespace AHT_Triggers
 
             SelectedTrigger = List_Triggers.SelectedIndices[0];
             PopulateTriggerInfo();
+
+            Trigger trig = ViewingData[SelectedMap].TriggerList[SelectedTrigger];
+            for (int i = 0; i < List_Triggers.Items.Count; i++)
+            {
+                ListViewItem lwi = List_Triggers.Items[i];
+                bool referenced = false;
+
+                foreach (short l in trig.Links)
+                {
+                    if (i == l)
+                    {
+                        lwi.BackColor = Color.Beige;
+
+                        referenced = true;
+                    }
+                }
+
+                if (!referenced)
+                {
+                    lwi.BackColor = Color.White;
+                }
+            }
         }
 
         private void PopulateTriggerInfo()
@@ -135,17 +157,46 @@ namespace AHT_Triggers
             Lbl_ScaleY.Text = string.Format("{0:0.00}", trig.Scale.y);
             Lbl_ScaleZ.Text = string.Format("{0:0.00}", trig.Scale.z);
 
+            //A trigger has 16 slots for data, but they only use ones defined by the TrigFlags
             StringBuilder str = new StringBuilder();
-            int j = 0;
+            int j = 0; //index into trigger data list
             for (int i = 0; i<16; i++)
             {
+                //Only add data if the trigger has it defined for this slot
                 if (trig.HasData(i))
                 {
-                    str.Append(string.Format("0x{0:X}\n", trig.Data[j]));
+                    uint dat = trig.Data[j];
+
+                    //Test if it's a Hashcode
+                    if (Enum.IsDefined(typeof(EXHashCode), dat) && (dat != 0))
+                    {
+                        str.AppendLine(((EXHashCode)dat).ToString());
+                        j++;
+                        continue;
+                    }
+
+                    //Test if it's (most likely) a float
+                    int dat2 = (int)dat;
+                    if ((dat2 < -99999) | (dat2 > 99999))
+                    {
+                        byte[] bytes = new byte[]{
+                            (byte) (dat2 & 0x000000FF),
+                            (byte)((dat2 & 0x0000FF00) >> 8 ),
+                            (byte)((dat2 & 0x00FF0000) >> 16),
+                            (byte)((dat2 & 0xFF000000) >> 24)
+                        };
+
+                        str.AppendLine(BitConverter.ToSingle(bytes, 0).ToString());
+                        j++;
+                        continue;
+                    }
+
+                    //Else assume it's an int
+                    str.AppendLine(trig.Data[j].ToString());
                     j++;
                 } else
                 {
-                    str.Append("\n");
+                    str.AppendLine();
                 }
             }
 
@@ -172,7 +223,13 @@ namespace AHT_Triggers
                 Lbl_GFXHashDesc.Visible = true;
                 Lbl_GFXHash.Visible = true;
 
-                Lbl_GFXHash.Text = string.Format("{0:X}", trig.GfxHashRef);
+                if (Enum.IsDefined(typeof(EXHashCode), trig.GfxHashRef))
+                {
+                    Lbl_GFXHash.Text = ((EXHashCode)trig.GfxHashRef).ToString();
+                } else
+                {
+                    Lbl_GFXHash.Text = string.Format("0x{0:X}", trig.GfxHashRef);
+                }
             } else
             {
                 Lbl_GFXHashDesc.Visible = false;
@@ -184,7 +241,14 @@ namespace AHT_Triggers
                 Lbl_GeoHashDesc.Visible = true;
                 Lbl_GeoHash.Visible = true;
 
-                Lbl_GeoHash.Text = string.Format("{0:X}", trig.GeoFileHashRef);
+                if (Enum.IsDefined(typeof(EXHashCode), trig.GeoFileHashRef))
+                {
+                    Lbl_GeoHash.Text = ((EXHashCode)trig.GeoFileHashRef).ToString();
+                }
+                else
+                {
+                    Lbl_GeoHash.Text = string.Format("0x{0:X}", trig.GeoFileHashRef);
+                }
             }
             else
             {
