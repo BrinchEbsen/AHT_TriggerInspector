@@ -41,6 +41,8 @@ namespace AHT_Triggers
 
             Txt_ScriptCode.Text = decomp.ScriptToString();
 
+            Txt_ByteCode.Text = decomp.BytecodeToString();
+
             Highlight();
         }
 
@@ -49,13 +51,11 @@ namespace AHT_Triggers
         {
             const int WM_SETREDRAW = 0x000B;
 
+            //Tell the textbox to redraw
             SendMessage(Txt_ScriptCode.Handle, WM_SETREDRAW, IntPtr.Zero, IntPtr.Zero);
 
             var sel_start = Txt_ScriptCode.SelectionStart;
             var sel_len = Txt_ScriptCode.SelectionLength;
-
-            Txt_ScriptCode.SelectAll();
-            Txt_ScriptCode.SelectionColor = defTextCol;
 
             int p;
 
@@ -80,12 +80,28 @@ namespace AHT_Triggers
                 string s = Txt_ScriptCode.Text.Remove(0, p);
 
                 //Get index of nearest space or newline, whichever is first
-                int n = Math.Min(s.IndexOf(' '), s.IndexOf('\n'));
-                if (n < 0) { //Not sure how this could happen
+                int iNextSpace  = s.IndexOf(' ');
+                int iNextLineBr = s.IndexOf("\n");
+
+                int n;
+                if (iNextLineBr < 0)
+                {
+                    n = iNextSpace;
+                } else if (iNextSpace < 0)
+                {
+                    n = iNextLineBr;
+                } else
+                {
+                    n = Math.Min(iNextSpace, iNextLineBr);
+                }
+
+                //This shouldn't happen, but just in case
+                if (n < 0) {
                     p += 1;
                     continue;
                 }
 
+                //Cut out everything past the hashcode label
                 s = s.Remove(n);
 
                 Txt_ScriptCode.SelectionStart = p;

@@ -88,7 +88,7 @@ namespace AHT_Triggers.Data
             "HEADTRACKING",
             "TALKCAMERA",
             "HEROTOTALKDIST",
-            "SUICIDE",
+            "STOP",
             "STARTSOUND",
             "PLAYSCRIPT",
             "PAUSESCRIPT",

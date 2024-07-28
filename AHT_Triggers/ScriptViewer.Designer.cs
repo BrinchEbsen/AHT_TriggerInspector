@@ -40,7 +40,14 @@
             this.Lbl_GlobalsDesc = new System.Windows.Forms.Label();
             this.Lbl_LinesDesc = new System.Windows.Forms.Label();
             this.Txt_ScriptCode = new System.Windows.Forms.RichTextBox();
+            this.TabCtrl_Script = new System.Windows.Forms.TabControl();
+            this.Tab_Interpreted = new System.Windows.Forms.TabPage();
+            this.Tab_RawBytecode = new System.Windows.Forms.TabPage();
+            this.Txt_ByteCode = new System.Windows.Forms.RichTextBox();
             this.Box_ScriptInfo.SuspendLayout();
+            this.TabCtrl_Script.SuspendLayout();
+            this.Tab_Interpreted.SuspendLayout();
+            this.Tab_RawBytecode.SuspendLayout();
             this.SuspendLayout();
             // 
             // Box_ScriptInfo
@@ -172,25 +179,77 @@
             this.Txt_ScriptCode.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(246)))), ((int)(((byte)(227)))));
             this.Txt_ScriptCode.Font = new System.Drawing.Font("Courier New", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Txt_ScriptCode.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(101)))), ((int)(((byte)(123)))), ((int)(((byte)(131)))));
-            this.Txt_ScriptCode.Location = new System.Drawing.Point(4, 120);
+            this.Txt_ScriptCode.Location = new System.Drawing.Point(7, 6);
             this.Txt_ScriptCode.Name = "Txt_ScriptCode";
             this.Txt_ScriptCode.ReadOnly = true;
-            this.Txt_ScriptCode.Size = new System.Drawing.Size(760, 755);
+            this.Txt_ScriptCode.Size = new System.Drawing.Size(739, 709);
             this.Txt_ScriptCode.TabIndex = 1;
             this.Txt_ScriptCode.Text = "";
+            // 
+            // TabCtrl_Script
+            // 
+            this.TabCtrl_Script.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.TabCtrl_Script.Controls.Add(this.Tab_Interpreted);
+            this.TabCtrl_Script.Controls.Add(this.Tab_RawBytecode);
+            this.TabCtrl_Script.Location = new System.Drawing.Point(4, 120);
+            this.TabCtrl_Script.Name = "TabCtrl_Script";
+            this.TabCtrl_Script.SelectedIndex = 0;
+            this.TabCtrl_Script.Size = new System.Drawing.Size(760, 747);
+            this.TabCtrl_Script.TabIndex = 2;
+            // 
+            // Tab_Interpreted
+            // 
+            this.Tab_Interpreted.Controls.Add(this.Txt_ScriptCode);
+            this.Tab_Interpreted.Location = new System.Drawing.Point(4, 22);
+            this.Tab_Interpreted.Name = "Tab_Interpreted";
+            this.Tab_Interpreted.Padding = new System.Windows.Forms.Padding(3);
+            this.Tab_Interpreted.Size = new System.Drawing.Size(752, 721);
+            this.Tab_Interpreted.TabIndex = 0;
+            this.Tab_Interpreted.Text = "Interpreted";
+            this.Tab_Interpreted.UseVisualStyleBackColor = true;
+            // 
+            // Tab_RawBytecode
+            // 
+            this.Tab_RawBytecode.Controls.Add(this.Txt_ByteCode);
+            this.Tab_RawBytecode.Location = new System.Drawing.Point(4, 22);
+            this.Tab_RawBytecode.Name = "Tab_RawBytecode";
+            this.Tab_RawBytecode.Padding = new System.Windows.Forms.Padding(3);
+            this.Tab_RawBytecode.Size = new System.Drawing.Size(752, 721);
+            this.Tab_RawBytecode.TabIndex = 1;
+            this.Tab_RawBytecode.Text = "Raw Bytecode";
+            this.Tab_RawBytecode.UseVisualStyleBackColor = true;
+            // 
+            // Txt_ByteCode
+            // 
+            this.Txt_ByteCode.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.Txt_ByteCode.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(246)))), ((int)(((byte)(227)))));
+            this.Txt_ByteCode.Font = new System.Drawing.Font("Courier New", 11.25F);
+            this.Txt_ByteCode.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(101)))), ((int)(((byte)(123)))), ((int)(((byte)(131)))));
+            this.Txt_ByteCode.Location = new System.Drawing.Point(7, 6);
+            this.Txt_ByteCode.Name = "Txt_ByteCode";
+            this.Txt_ByteCode.Size = new System.Drawing.Size(739, 709);
+            this.Txt_ByteCode.TabIndex = 0;
+            this.Txt_ByteCode.Text = "";
             // 
             // ScriptViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(776, 879);
-            this.Controls.Add(this.Txt_ScriptCode);
+            this.Controls.Add(this.TabCtrl_Script);
             this.Controls.Add(this.Box_ScriptInfo);
             this.Name = "ScriptViewer";
             this.Text = "ScriptViewer";
             this.Load += new System.EventHandler(this.ScriptViewer_Load);
             this.Box_ScriptInfo.ResumeLayout(false);
             this.Box_ScriptInfo.PerformLayout();
+            this.TabCtrl_Script.ResumeLayout(false);
+            this.Tab_Interpreted.ResumeLayout(false);
+            this.Tab_RawBytecode.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -209,5 +268,9 @@
         private System.Windows.Forms.Label Lbl_Lines;
         private System.Windows.Forms.Label Lbl_Index;
         private System.Windows.Forms.Label Lbl_IndexDesc;
+        private System.Windows.Forms.TabControl TabCtrl_Script;
+        private System.Windows.Forms.TabPage Tab_Interpreted;
+        private System.Windows.Forms.TabPage Tab_RawBytecode;
+        private System.Windows.Forms.RichTextBox Txt_ByteCode;
     }
 }

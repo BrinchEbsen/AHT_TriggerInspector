@@ -17,13 +17,13 @@ namespace AHT_Triggers.Data
 
     internal class ByteCodeDecompiler
     {
-        private GameScript script;
+        private GameScript script { get; set; }
 
         //Amount of space before the line of code that is deciphered
         private int Indentation = 0;
 
         //How many spaces are added for each indentation level
-        private int IndentLevel = 2;
+        private readonly int INDENT_LEVEL = 2;
 
         //Lists to keep track of information regarding variables during the script decompile
         private List<LocalVar> TrackedLocals;
@@ -47,13 +47,14 @@ namespace AHT_Triggers.Data
             DecTwiceBefore
         }
 
+        private IndentState indentState = IndentState.None;
+
         private static readonly Dictionary<int, string> LVAR_NAMES = new Dictionary<int, string>
         {
-            [5]  = "yesNoBoxResult",
-            [15] = "procReturn"
+            [5]  = "YESNO",
+            [7]  = "MESSAGE",
+            [15] = "RETURN0"
         };
-
-        private IndentState indentState = IndentState.None;
 
         public ByteCodeDecompiler(GameScript script)
         {
@@ -234,28 +235,28 @@ namespace AHT_Triggers.Data
             switch (indentState)
             {
                 case IndentState.None:
-                    str = new string(' ', Indentation * IndentLevel) + instr;
+                    str = new string(' ', Indentation * INDENT_LEVEL) + instr;
                     break;
                 case IndentState.IncAfter:
-                    str = new string(' ', Indentation * IndentLevel) + instr;
+                    str = new string(' ', Indentation * INDENT_LEVEL) + instr;
                     IncIndentation(1);
                     break;
                 case IndentState.DecBefore:
                     DecIndentation(1);
-                    str = new string(' ', Indentation * IndentLevel) + instr;
+                    str = new string(' ', Indentation * INDENT_LEVEL) + instr;
                     break;
                 case IndentState.DecBeforeIncAfter:
                     DecIndentation(1);
-                    str = new string(' ', Indentation * IndentLevel) + instr;
+                    str = new string(' ', Indentation * INDENT_LEVEL) + instr;
                     IncIndentation(1);
                     break;
                 case IndentState.IncTwiceAfter:
-                    str = new string(' ', Indentation * IndentLevel) + instr;
+                    str = new string(' ', Indentation * INDENT_LEVEL) + instr;
                     IncIndentation(2);
                     break;
                 case IndentState.DecTwiceBefore:
                     DecIndentation(2);
-                    str = new string(' ', Indentation * IndentLevel) + instr;
+                    str = new string(' ', Indentation * INDENT_LEVEL) + instr;
                     break;
                 default:
                     str = "INVALID INDENTATION";
@@ -375,7 +376,7 @@ namespace AHT_Triggers.Data
                             //Only add locals part of the current procedure
                             if (TrackedLocals[j].proc == CurrentProc)
                             {
-                                codeStr.Insert(i + offs, new string(' ', IndentLevel) + "INT " + GetVarName(TrackedLocals[j].index));
+                                codeStr.Insert(i + offs, new string(' ', INDENT_LEVEL) + "INT " + GetVarName(TrackedLocals[j].index));
                                 offs++;
 
                                 addNewLine = true;
@@ -392,7 +393,7 @@ namespace AHT_Triggers.Data
                 //If the line number has an associated label, add it
                 if (LabelHeaders.ContainsKey(i))
                 {
-                    codeStr.Insert(i + offs, new string(' ', IndentLevel) + "LABEL " + LabelHeaders[i]);
+                    codeStr.Insert(i + offs, new string(' ', INDENT_LEVEL) + "LABEL " + LabelHeaders[i]);
                     offs++;
                 }
 
@@ -451,6 +452,29 @@ namespace AHT_Triggers.Data
             foreach (string s in codeStr)
             {
                 sb.AppendLine(s);
+            }
+
+            return sb.ToString();
+        }
+
+        //Turn the script into a string of a list of the bytecode
+        public string BytecodeToString()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = 0; i < script.NumLines; i++)
+            {
+                CodeLine line = script.Code[i];
+
+                string str =
+                    i.ToString().PadRight(4, ' ') +
+                    string.Format("| instr: 0x{0:X}", line.InstructionID).PadRight(14, ' ') + "| data: [0x" +
+                    string.Format("{0:X}",            line.Data1).PadLeft(2, '0')           + "] [0x" +
+                    string.Format("{0:X}",            line.Data2).PadLeft(2, '0')           + "] [0x" +
+                    string.Format("{0:X}",            line.Data3).PadLeft(2, '0')           + "] [0x" +
+                    string.Format("{0:X}",            line.Data4).PadLeft(8, '0')           + "]";
+
+                sb.AppendLine(str);
             }
 
             return sb.ToString();
@@ -1027,8 +1051,8 @@ namespace AHT_Triggers.Data
                     str = "HEROTOTALKDIST " + ValToString(line.Data4);
 
                     break;
-                case 0x68: // SUICIDE
-                    str = "SUICIDE";
+                case 0x68: // STOP
+                    str = "STOP";
 
                     break;
                 case 0x69: // STARTSOUND <hash>

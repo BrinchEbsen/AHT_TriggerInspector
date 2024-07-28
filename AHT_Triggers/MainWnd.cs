@@ -95,7 +95,7 @@ namespace AHT_Triggers
                     item.SubItems.Add(trig.SubType.ToString().Replace("HT_TriggerSubType_", ""));
 
                     item.SubItems.Add(
-                        trig.HasScript() ? "Yes" : "No"
+                        trig.HasScript() ? trig.ScriptIndex.ToString() : ""
                     );
                 }
             }

@@ -13,6 +13,11 @@ namespace AHT_Triggers.Data
         public List<Trigger> TriggerList;
     }
 
+    /*
+     * A static object in a map with a position, rotation, scale and range.
+     * Has a type (and optional sub-type) that defines its behavior, along with
+     * a set of data and links to other triggers.
+     */
     public class Trigger
     {
         public ushort TypeIndex;
@@ -27,7 +32,7 @@ namespace AHT_Triggers.Data
         public EXVector3 Rotation;
         public EXVector3 Scale;
 
-        public List<uint> Data = new List<uint>();
+        public List<uint>   Data  = new List<uint>();
         public List<ushort> Links = new List<ushort>();
 
         public uint GfxHashRef;
@@ -92,6 +97,7 @@ namespace AHT_Triggers.Data
         }
     }
 
+    //A list of instructions organized into procedures, with a set of local/global variables.
     public struct GameScript
     {
         public int NumLines;
@@ -105,6 +111,8 @@ namespace AHT_Triggers.Data
         public List<CodeLine> Code;
     }
 
+    //A logical set of instructions that can be called from other procedures.
+    //Has a defined start line and name.
     public struct Procedure
     {
         public int StartLine;
@@ -115,6 +123,8 @@ namespace AHT_Triggers.Data
         public int NumLocals;
     }
 
+    //An instruction with an ID and 4 units of data.
+    //The ID determines what the instruction does, with further behavior defined by the data.
     public struct CodeLine
     {
         public byte InstructionID;
