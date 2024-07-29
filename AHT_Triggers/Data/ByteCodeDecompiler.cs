@@ -76,6 +76,32 @@ namespace AHT_Triggers.Data
             }
         }
 
+        //Return the name of the procedure at the given index into the ProcTable.
+        //Adds the index to the end of the name, if another procedure with the same name exists.
+        private string GetProcName(int proc)
+        {
+            if (script.Procedures.Count == 0)
+            {
+                return "ERR!";
+            }
+
+            string name = script.Procedures[proc].Name;
+
+            for (int i = 0; i < script.Procedures.Count; i++)
+            {
+                //Don't examine the same procedure
+                if (i == proc) { continue; }
+
+                //If the name is idential to other procedures, add its index onto the end so it can be identified.
+                if (script.Procedures[i].Name == name)
+                {
+                    return name + "_" + proc.ToString();
+                }
+            }
+
+            return name;
+        }
+
         //Create a compare statement between two variables/values with a given operator ID
         private string CreateCompareStatement(string val1, string val2, byte oper)
         {
@@ -189,7 +215,11 @@ namespace AHT_Triggers.Data
             }
         }
 
-        //Create a name for a variable at the given index
+        /// <summary>
+        /// Create a name for a variable at the given index
+        /// </summary>
+        /// <param name="i">Variable index</param>
+        /// <returns>Name</returns>
         private string GetVarName(int i)
         {
             if (TrackVars) { TrackVar(i); }
@@ -215,19 +245,30 @@ namespace AHT_Triggers.Data
             }
         }
 
-        //Return a string representation of the value, or the hashcode label if one exists for it
+        /// <summary>
+        /// Turn a value into a string representation, or a hashcode if one exists for it.
+        /// </summary>
+        /// <param name="value">The value to convert</param>
+        /// <returns>String representation of the value, or the hashcode if one exists for it.</returns>
         private string ValToString(int value)
         {
             if (Enum.IsDefined(typeof(EXHashCode), (uint)value) && (value != 0))
             {
                 return ((EXHashCode)value).ToString();
+            } else if(Enum.IsDefined(typeof(ESHashCode), (uint)value))
+            {
+                return ((ESHashCode)value).ToString();
             } else
             {
                 return value.ToString();
             }
         }
 
-        //Add the indentation to a code line, and increase/decrease accordingly
+        /// <summary>
+        /// Add the indentation to a code line, and increase/decrease accordingly
+        /// </summary>
+        /// <param name="instr">String representing the line of code</param>
+        /// <returns>Indented line of code</returns>
         private string AddIndent(string instr)
         {
             string str;
@@ -272,6 +313,11 @@ namespace AHT_Triggers.Data
         }
 
         //Take the whole gamescript and turn it into a string representing the interpreted source code
+
+        /// <summary>
+        /// Decompile the gamescript.
+        /// </summary>
+        /// <returns>Decompiled gamescript contained in a string.</returns>
         public string ScriptToString()
         {
             //Clear lists of procedures and labels
@@ -295,11 +341,13 @@ namespace AHT_Triggers.Data
             for (int i = 0; i<script.NumLines; i++)
             {
                 //Check for start of procedure
-                foreach (Procedure p in script.Procedures)
+                for (int j = 0; j < script.Procedures.Count; j++)
                 {
+                    Procedure p = script.Procedures[j];
+
                     if (p.StartLine == i)
                     {
-                        string s = p.Name;
+                        string s = GetProcName(j);
                         if (p.Exclusive)
                         {
                             s += " exclusive";
@@ -309,7 +357,7 @@ namespace AHT_Triggers.Data
                         Indentation = 1;
                         ProcHeaders.Add(i, s);
 
-                        CurrentProc++;
+                        CurrentProc = j;
 
                         break;
                     }
@@ -398,11 +446,14 @@ namespace AHT_Triggers.Data
                 }
 
                 //Take any line with "AND" and stick it onto the line before, then delete the original line
-                if (codeStr[i].IndexOf(" AND") >= 0)
+                if (i < codeStr.Count)
                 {
-                    codeStr[i - 1] += " " + codeStr[i].Trim();
-                    codeStr.RemoveAt(i);
-                    offs--; //Since we've removed a line, not added one
+                    if (codeStr[i].IndexOf(" AND") >= 0)
+                    {
+                        codeStr[i - 1] += " " + codeStr[i].Trim();
+                        codeStr.RemoveAt(i);
+                        offs--; //Since we've removed a line, not added one
+                    }
                 }
             }
 
@@ -457,7 +508,10 @@ namespace AHT_Triggers.Data
             return sb.ToString();
         }
 
-        //Turn the script into a string of a list of the bytecode
+        /// <summary>
+        /// Create a list of instructions from the bytecode.
+        /// </summary>
+        /// <returns>String containing the list of instructions</returns>
         public string BytecodeToString()
         {
             StringBuilder sb = new StringBuilder();
@@ -472,7 +526,8 @@ namespace AHT_Triggers.Data
                     string.Format("{0:X}",            line.Data1).PadLeft(2, '0')           + "] [0x" +
                     string.Format("{0:X}",            line.Data2).PadLeft(2, '0')           + "] [0x" +
                     string.Format("{0:X}",            line.Data3).PadLeft(2, '0')           + "] [0x" +
-                    string.Format("{0:X}",            line.Data4).PadLeft(8, '0')           + "]";
+                    string.Format("{0:X}",            line.Data4).PadLeft(8, '0')           + "] | " + 
+                    DecipherCommand(line);
 
                 sb.AppendLine(str);
             }
@@ -480,7 +535,11 @@ namespace AHT_Triggers.Data
             return sb.ToString();
         }
 
-        //Turn an instruction into a string representation of the line of code
+        /// <summary>
+        /// Turn an instruction into a string representation of the line of code
+        /// </summary>
+        /// <param name="line">Line of code to decipher</param>
+        /// <returns>Deciphered line of code</returns>
         public string DecipherCommand(CodeLine line)
         {
             string str;
@@ -596,14 +655,14 @@ namespace AHT_Triggers.Data
                     {
                         str = GetVarName(line.Data1) + " = " + CreateMathStatement(
                                 ValToString(line.Data4),
-                                GetVarName(line.Data3),
+                                GetVarName(line.Data2),
                                 line.Data3
                             );
                     } else
                     {
                         str = GetVarName(line.Data1) + " = " + CreateMathStatement(
                                 GetVarName(line.Data4),
-                                GetVarName(line.Data3),
+                                GetVarName(line.Data2),
                                 line.Data3
                             );
                     }
@@ -611,7 +670,7 @@ namespace AHT_Triggers.Data
                     break;
                 case 0x16: // <var1> = <var2> <operator> <value>
                     str = GetVarName(line.Data1) + " = " + CreateMathStatement(
-                            GetVarName(line.Data1),
+                            GetVarName(line.Data2),
                             ValToString(line.Data4),
                             line.Data3
                         );
@@ -675,11 +734,11 @@ namespace AHT_Triggers.Data
 
                     break;
                 case 0x20: // <var> = CALLPROC <procedure>
-                    str = GetVarName(line.Data3) + " = CALLPROC " + script.Procedures[line.Data1].Name;
+                    str = GetVarName(line.Data3) + " = CALLPROC " + GetProcName(line.Data1);
 
                     break;
                 case 0x21: // <var> = INSTANCE <procedure>
-                    str = GetVarName(line.Data3) + " = INSTANCE " + script.Procedures[line.Data1].Name;
+                    str = GetVarName(line.Data3) + " = INSTANCE " + GetProcName(line.Data1);
 
                     break;
                 case 0x22: // BREAK
@@ -764,7 +823,7 @@ namespace AHT_Triggers.Data
                         str += "ALL";
                     } else
                     {
-                        str += script.Procedures[line.Data1].Name;
+                        str += GetProcName(line.Data1);
                     }
 
                     break;
@@ -777,7 +836,7 @@ namespace AHT_Triggers.Data
                     }
                     else
                     {
-                        str += script.Procedures[line.Data1].Name;
+                        str += GetProcName(line.Data1);
                     }
 
                     break;
@@ -790,7 +849,7 @@ namespace AHT_Triggers.Data
                     }
                     else
                     {
-                        str += script.Procedures[line.Data1].Name;
+                        str += GetProcName(line.Data1);
                     }
 
                     break;
@@ -803,12 +862,12 @@ namespace AHT_Triggers.Data
                     }
                     else
                     {
-                        str += script.Procedures[line.Data1].Name;
+                        str += GetProcName(line.Data1);
                     }
 
                     break;
                 case 0x34: // <var> = ISRUNNING <procedure>
-                    str = GetVarName(line.Data3) + " = ISRUNNING " + script.Procedures[line.Data1].Name;
+                    str = GetVarName(line.Data3) + " = ISRUNNING " + GetProcName(line.Data1);
 
                     break;
        /*TODO*/ case 0x38: // DEFARRAY <array>
@@ -967,10 +1026,10 @@ namespace AHT_Triggers.Data
                     str = "TURNTOPATHNODE " + ValToString(line.Data1);
 
                     break;
-                case 0x54: // Unused
-                    str = "UNUSED";
-
-                    break;
+                //case 0x54: // Unused
+                //    str = "UNUSED";
+                //
+                //    break;
                 case 0x55: // TALKINDICATOR <value>
                     str = "TALKINDICATOR " + ValToString(line.Data4);
 
@@ -1387,7 +1446,7 @@ namespace AHT_Triggers.Data
 
                     break;
                 default:
-                    str = string.Format("UNK! 0x{0:X}", line.InstructionID);
+                    str = string.Format("// Unknown Instruction: 0x{0:X}", line.InstructionID);
                     break;
             }
 

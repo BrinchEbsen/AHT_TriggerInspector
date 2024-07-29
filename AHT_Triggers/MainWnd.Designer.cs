@@ -82,11 +82,15 @@
             this.Lbl_TrigFlags = new System.Windows.Forms.Label();
             this.Lbl_TrigFlagsDesc = new System.Windows.Forms.Label();
             this.Btn_LoadFile = new System.Windows.Forms.Button();
+            this.PicBox_TintColour = new System.Windows.Forms.PictureBox();
+            this.Check_OnlyScripted = new System.Windows.Forms.CheckBox();
+            this.MapNumTriggers = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.Box_TriggerInfo.SuspendLayout();
             this.Box_TriggerLinks.SuspendLayout();
             this.Box_TriggerData.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.PicBox_TintColour)).BeginInit();
             this.SuspendLayout();
             // 
             // groupBox1
@@ -104,7 +108,8 @@
             // 
             this.List_Maps.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.MapIndex,
-            this.MapHash});
+            this.MapHash,
+            this.MapNumTriggers});
             this.List_Maps.FullRowSelect = true;
             this.List_Maps.HideSelection = false;
             this.List_Maps.Location = new System.Drawing.Point(7, 20);
@@ -130,6 +135,7 @@
             // 
             this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
+            this.groupBox2.Controls.Add(this.Check_OnlyScripted);
             this.groupBox2.Controls.Add(this.List_Triggers);
             this.groupBox2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.groupBox2.Location = new System.Drawing.Point(12, 175);
@@ -150,10 +156,10 @@
             this.TriggerHasScript});
             this.List_Triggers.FullRowSelect = true;
             this.List_Triggers.HideSelection = false;
-            this.List_Triggers.Location = new System.Drawing.Point(7, 20);
+            this.List_Triggers.Location = new System.Drawing.Point(7, 48);
             this.List_Triggers.MultiSelect = false;
             this.List_Triggers.Name = "List_Triggers";
-            this.List_Triggers.Size = new System.Drawing.Size(386, 571);
+            this.List_Triggers.Size = new System.Drawing.Size(386, 543);
             this.List_Triggers.TabIndex = 0;
             this.List_Triggers.UseCompatibleStateImageBehavior = false;
             this.List_Triggers.View = System.Windows.Forms.View.Details;
@@ -254,6 +260,7 @@
             this.Box_TriggerInfo.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.Box_TriggerInfo.Controls.Add(this.PicBox_TintColour);
             this.Box_TriggerInfo.Controls.Add(this.Btn_ViewGameScript);
             this.Box_TriggerInfo.Controls.Add(this.Lbl_GeoHash);
             this.Box_TriggerInfo.Controls.Add(this.Lbl_GeoHashDesc);
@@ -355,10 +362,10 @@
             // Lbl_Tint
             // 
             this.Lbl_Tint.AutoSize = true;
-            this.Lbl_Tint.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Lbl_Tint.Font = new System.Drawing.Font("Courier New", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Lbl_Tint.Location = new System.Drawing.Point(133, 340);
             this.Lbl_Tint.Name = "Lbl_Tint";
-            this.Lbl_Tint.Size = new System.Drawing.Size(45, 20);
+            this.Lbl_Tint.Size = new System.Drawing.Size(48, 18);
             this.Lbl_Tint.TabIndex = 36;
             this.Lbl_Tint.Text = "temp";
             // 
@@ -666,6 +673,31 @@
             this.Btn_LoadFile.UseVisualStyleBackColor = true;
             this.Btn_LoadFile.Click += new System.EventHandler(this.Btn_LoadFile_Click_1);
             // 
+            // PicBox_TintColour
+            // 
+            this.PicBox_TintColour.BackColor = System.Drawing.Color.Azure;
+            this.PicBox_TintColour.Location = new System.Drawing.Point(51, 340);
+            this.PicBox_TintColour.Name = "PicBox_TintColour";
+            this.PicBox_TintColour.Size = new System.Drawing.Size(60, 20);
+            this.PicBox_TintColour.TabIndex = 42;
+            this.PicBox_TintColour.TabStop = false;
+            // 
+            // Check_OnlyScripted
+            // 
+            this.Check_OnlyScripted.AutoSize = true;
+            this.Check_OnlyScripted.Location = new System.Drawing.Point(7, 20);
+            this.Check_OnlyScripted.Name = "Check_OnlyScripted";
+            this.Check_OnlyScripted.Size = new System.Drawing.Size(146, 19);
+            this.Check_OnlyScripted.TabIndex = 1;
+            this.Check_OnlyScripted.Text = "Only Scripted Triggers";
+            this.Check_OnlyScripted.UseVisualStyleBackColor = true;
+            this.Check_OnlyScripted.CheckedChanged += new System.EventHandler(this.Check_OnlyScripted_CheckedChanged);
+            // 
+            // MapNumTriggers
+            // 
+            this.MapNumTriggers.Text = "Trigger Amount";
+            this.MapNumTriggers.Width = 103;
+            // 
             // MainWnd
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -679,12 +711,14 @@
             this.Text = "Trigger Inspector";
             this.groupBox1.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
             this.Box_TriggerInfo.ResumeLayout(false);
             this.Box_TriggerInfo.PerformLayout();
             this.Box_TriggerLinks.ResumeLayout(false);
             this.Box_TriggerLinks.PerformLayout();
             this.Box_TriggerData.ResumeLayout(false);
             this.Box_TriggerData.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.PicBox_TintColour)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -744,6 +778,9 @@
         private System.Windows.Forms.Button Btn_ViewGameScript;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button Btn_LoadFile;
+        private System.Windows.Forms.PictureBox PicBox_TintColour;
+        private System.Windows.Forms.CheckBox Check_OnlyScripted;
+        private System.Windows.Forms.ColumnHeader MapNumTriggers;
     }
 }
 

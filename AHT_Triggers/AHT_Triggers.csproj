@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common\Common.cs" />
+    <Compile Include="Common\ESHashCode.cs" />
     <Compile Include="Common\EXHashCode.cs" />
     <Compile Include="Data\ByteCodeDecompiler.cs" />
     <Compile Include="Data\ByteSwapper.cs" />

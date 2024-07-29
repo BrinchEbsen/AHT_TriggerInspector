@@ -66,7 +66,10 @@ namespace AHT_Triggers
             {
                 for (int i = 0; i<ViewingData.Count; i++)
                 {
-                    List_Maps.Items.Add(i.ToString()).SubItems.Add(string.Format("{0:X}", ViewingData[i].MapHash));
+                    ListViewItem lwi = List_Maps.Items.Add(i.ToString());
+
+                    lwi.SubItems.Add(string.Format("{0:X}", ViewingData[i].MapHash));
+                    lwi.SubItems.Add(ViewingData[i].TriggerList.Count.ToString());
                 }
             }
         }
@@ -90,9 +93,20 @@ namespace AHT_Triggers
                 {
                     Trigger trig = ViewingData[SelectedMap].TriggerList[i];
 
+                    if (Check_OnlyScripted.Checked & !trig.HasScript())
+                    {
+                        continue;
+                    }
+
                     ListViewItem item = List_Triggers.Items.Add(i.ToString());
                     item.SubItems.Add(trig.Type.ToString().Replace("HT_TriggerType_", ""));
-                    item.SubItems.Add(trig.SubType.ToString().Replace("HT_TriggerSubType_", ""));
+                    if (trig.SubType != EXHashCode.HT_TriggerSubType_Undefined)
+                    {
+                        item.SubItems.Add(trig.SubType.ToString().Replace("HT_TriggerSubType_", ""));
+                    } else
+                    {
+                        item.SubItems.Add("");
+                    }
 
                     item.SubItems.Add(
                         trig.HasScript() ? trig.ScriptIndex.ToString() : ""
@@ -106,18 +120,19 @@ namespace AHT_Triggers
             if (List_Triggers.SelectedIndices.Count == 0)
             { return; }
 
-            SelectedTrigger = List_Triggers.SelectedIndices[0];
+            string sIndex = List_Triggers.Items[List_Triggers.SelectedIndices[0]].Text;
+            SelectedTrigger = int.Parse(sIndex);
             PopulateTriggerInfo();
 
             Trigger trig = ViewingData[SelectedMap].TriggerList[SelectedTrigger];
-            for (int i = 0; i < List_Triggers.Items.Count; i++)
+            foreach (ListViewItem lwi in List_Triggers.Items)
             {
-                ListViewItem lwi = List_Triggers.Items[i];
+                int index = int.Parse(lwi.Text);
                 bool referenced = false;
 
-                foreach (short l in trig.Links)
+                foreach (ushort l in trig.Links)
                 {
-                    if (i == l)
+                    if (index == l)
                     {
                         lwi.BackColor = Color.Beige;
 
@@ -139,8 +154,8 @@ namespace AHT_Triggers
 
             Lbl_TriggerIndex.Text = "Trigger: " + SelectedTrigger;
 
-            Lbl_TriggerType.Text = trig.Type.ToString();
-            Lbl_TriggerSubType.Text = trig.SubType.ToString();
+            Lbl_TriggerType.Text    = trig.Type.ToString().Replace("HT_TriggerType_", "");
+            Lbl_TriggerSubType.Text = trig.SubType.ToString().Replace("HT_TriggerSubType_", "");
 
             Lbl_GameFlags.Text = string.Format("0x{0:X}", trig.GameFlags);
             Lbl_TrigFlags.Text = string.Format("0x{0:X}", trig.TrigFlags);
@@ -171,6 +186,14 @@ namespace AHT_Triggers
                     if (Enum.IsDefined(typeof(EXHashCode), dat) && (dat != 0))
                     {
                         str.AppendLine(((EXHashCode)dat).ToString());
+                        j++;
+                        continue;
+                    }
+
+                    //Test if it's a sound Hashcode
+                    if (Enum.IsDefined(typeof(ESHashCode), dat) && (dat != 0))
+                    {
+                        str.AppendLine(((ESHashCode)dat).ToString());
                         j++;
                         continue;
                     }
@@ -260,14 +283,22 @@ namespace AHT_Triggers
             {
                 Lbl_TintDesc.Visible = true;
                 Lbl_Tint.Visible = true;
+                PicBox_TintColour.Visible = true;
 
-                Lbl_Tint.Text = string.Format("{0:X} | {1:X} | {2:X} | {3:X}",
+                Lbl_Tint.Text = string.Format("{0:X} {1:X} {2:X} {3:X}",
                     trig.Tint.r, trig.Tint.g, trig.Tint.b, trig.Tint.a);
+
+                PicBox_TintColour.BackColor = Color.FromArgb(
+                    trig.Tint.r,
+                    trig.Tint.g,
+                    trig.Tint.b
+                );
             }
             else
             {
                 Lbl_TintDesc.Visible = false;
                 Lbl_Tint.Visible = false;
+                PicBox_TintColour.Visible = false;
             }
 
             if (trig.HasScript())
@@ -285,6 +316,11 @@ namespace AHT_Triggers
             ScriptViewer scriptViewer = new ScriptViewer(trig);
             scriptViewer.StartPosition = FormStartPosition.CenterParent;
             scriptViewer.ShowDialog();
+        }
+
+        private void Check_OnlyScripted_CheckedChanged(object sender, EventArgs e)
+        {
+            PopulateTriggerList();
         }
     }
 }

@@ -105,7 +105,7 @@ namespace AHT_Triggers.Data
 
                 using (var reader = new EDBReader(stream, Encoding, Endian))
                 {
-                    //Map header pointer in GeoHeader
+                    //Read map information in the GeoHeader
                     stream.Seek(0x84, SeekOrigin.Begin);
                     int numMaps = reader.ReadInt16();
                     if (numMaps == 0)
@@ -115,10 +115,11 @@ namespace AHT_Triggers.Data
                     }
                     Console.WriteLine("Found "+numMaps+" maps");
 
+                    //Read pointer to map headers
                     stream.Seek(0x2, SeekOrigin.Current);
                     int pMapHeaders = reader.ReadRelPtr().GetAbsoluteAddress();
 
-                    //Loop trough all maps
+                    //Loop trough all maps and add it to the list
                     for (int i = 0; i < numMaps; i++)
                     {
                         stream.Seek(pMapHeaders + (0x10 * i), SeekOrigin.Begin);
@@ -159,6 +160,7 @@ namespace AHT_Triggers.Data
                             int pTrigger = reader.ReadRelPtr().GetAbsoluteAddress();
                             Console.WriteLine(string.Format("pTrigger: {0:X}", pTrigger));
 
+                            //Read trigger information
                             stream.Seek(pTrigger, SeekOrigin.Begin);
                             trigger.TypeIndex = reader.ReadUInt16();
                             trigger.Debug = reader.ReadUInt16();
@@ -204,11 +206,10 @@ namespace AHT_Triggers.Data
                             }
                             if (trigger.HasTint())
                             {
-                                uint Tint = reader.ReadUInt32();
-                                trigger.Tint.r = (byte)((Tint & 0xFF000000) >> 24);
-                                trigger.Tint.g = (byte)((Tint & 0x00FF0000) >> 16);
-                                trigger.Tint.b = (byte)((Tint & 0x0000FF00) >> 8);
-                                trigger.Tint.a = (byte) (Tint & 0x000000FF);
+                                trigger.Tint.r = reader.ReadByte();
+                                trigger.Tint.g = reader.ReadByte();
+                                trigger.Tint.b = reader.ReadByte();
+                                trigger.Tint.a = reader.ReadByte();
                             }
 
                             //Read from the triggertypes table
@@ -223,6 +224,8 @@ namespace AHT_Triggers.Data
                                 int pScriptData = reader.ReadRelPtr().GetAbsoluteAddress();
                                 Console.WriteLine(string.Format("ScriptIndex: {0}", trigger.ScriptIndex));
                                 Console.WriteLine(string.Format("pScriptData: {0:X}", pScriptData));
+
+                                //Read all the script's data
 
                                 trigger.Script.VTable = new byte[16];
 
@@ -245,6 +248,7 @@ namespace AHT_Triggers.Data
                                 trigger.Script.NumGlobals = reader.ReadByte();
                                 trigger.Script.NumProcs = reader.ReadByte();
 
+                                //Read procedure data
                                 stream.Seek(0x4, SeekOrigin.Current);
                                 trigger.Script.Procedures = new List<Procedure>();
                                 for (int k = 0; k < trigger.Script.NumProcs; k++)

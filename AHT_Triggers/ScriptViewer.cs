@@ -18,9 +18,9 @@ namespace AHT_Triggers
         private Trigger trigger;
         private ByteCodeDecompiler decomp;
 
-        private Color defTextCol  = Color.FromArgb(101, 123, 131);
         private Color keywordCol  = Color.FromArgb(38, 139, 210);
         private Color hashcodeCol = Color.FromArgb(255, 0, 255);
+        private Color commentCol  = Color.FromArgb(0x85, 0x99, 0);
 
         public ScriptViewer(Trigger trigger)
         {
@@ -54,6 +54,7 @@ namespace AHT_Triggers
             //Tell the textbox to redraw
             SendMessage(Txt_ScriptCode.Handle, WM_SETREDRAW, IntPtr.Zero, IntPtr.Zero);
 
+            //Store selection
             var sel_start = Txt_ScriptCode.SelectionStart;
             var sel_len = Txt_ScriptCode.SelectionLength;
 
@@ -68,7 +69,7 @@ namespace AHT_Triggers
                     Txt_ScriptCode.SelectionStart = p;
                     Txt_ScriptCode.SelectionLength = s.Length;
                     Txt_ScriptCode.SelectionColor = keywordCol;
-
+                     
                     p += 1;
                 }
             }
@@ -77,9 +78,11 @@ namespace AHT_Triggers
             p = 0;
             while ((p = Txt_ScriptCode.Find("HT_", p, RichTextBoxFinds.None)) >= 0)
             {
+                //Remove everything before the hashcode
                 string s = Txt_ScriptCode.Text.Remove(0, p);
 
                 //Get index of nearest space or newline, whichever is first
+                //This marks the end of the hashcode
                 int iNextSpace  = s.IndexOf(' ');
                 int iNextLineBr = s.IndexOf("\n");
 
@@ -101,16 +104,38 @@ namespace AHT_Triggers
                     continue;
                 }
 
-                //Cut out everything past the hashcode label
-                s = s.Remove(n);
-
                 Txt_ScriptCode.SelectionStart = p;
-                Txt_ScriptCode.SelectionLength = s.Length;
+                Txt_ScriptCode.SelectionLength = n;
                 Txt_ScriptCode.SelectionColor = hashcodeCol;
 
                 p += n;
             }
 
+            //Color comments
+            p = 0;
+            while ((p = Txt_ScriptCode.Find("//", p, RichTextBoxFinds.None)) >= 0)
+            {
+                //Remove everything before the comment
+                string s = Txt_ScriptCode.Text.Remove(0, p);
+
+                //Get index of nearest newline
+                //This marks the end of the comment
+                int n = s.IndexOf("\n");
+                
+                //If none exist, just use the end of the text
+                if (n < 0)
+                {
+                    n = sel_len;
+                }
+
+                Txt_ScriptCode.SelectionStart = p;
+                Txt_ScriptCode.SelectionLength = n;
+                Txt_ScriptCode.SelectionColor = commentCol;
+
+                p += n;
+            }
+
+            //Restore selection
             Txt_ScriptCode.SelectionStart = sel_start;
             Txt_ScriptCode.SelectionLength = sel_len;
 

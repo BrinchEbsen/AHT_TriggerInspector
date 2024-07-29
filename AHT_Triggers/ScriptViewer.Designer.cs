@@ -41,12 +41,12 @@
             this.Lbl_LinesDesc = new System.Windows.Forms.Label();
             this.Txt_ScriptCode = new System.Windows.Forms.RichTextBox();
             this.TabCtrl_Script = new System.Windows.Forms.TabControl();
-            this.Tab_Interpreted = new System.Windows.Forms.TabPage();
+            this.Tab_Decompile = new System.Windows.Forms.TabPage();
             this.Tab_RawBytecode = new System.Windows.Forms.TabPage();
             this.Txt_ByteCode = new System.Windows.Forms.RichTextBox();
             this.Box_ScriptInfo.SuspendLayout();
             this.TabCtrl_Script.SuspendLayout();
-            this.Tab_Interpreted.SuspendLayout();
+            this.Tab_Decompile.SuspendLayout();
             this.Tab_RawBytecode.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -66,7 +66,7 @@
             this.Box_ScriptInfo.Controls.Add(this.Lbl_LinesDesc);
             this.Box_ScriptInfo.Location = new System.Drawing.Point(4, 4);
             this.Box_ScriptInfo.Name = "Box_ScriptInfo";
-            this.Box_ScriptInfo.Size = new System.Drawing.Size(760, 110);
+            this.Box_ScriptInfo.Size = new System.Drawing.Size(916, 110);
             this.Box_ScriptInfo.TabIndex = 0;
             this.Box_ScriptInfo.TabStop = false;
             this.Box_ScriptInfo.Text = "GameScript Information";
@@ -182,7 +182,7 @@
             this.Txt_ScriptCode.Location = new System.Drawing.Point(7, 6);
             this.Txt_ScriptCode.Name = "Txt_ScriptCode";
             this.Txt_ScriptCode.ReadOnly = true;
-            this.Txt_ScriptCode.Size = new System.Drawing.Size(739, 709);
+            this.Txt_ScriptCode.Size = new System.Drawing.Size(895, 716);
             this.Txt_ScriptCode.TabIndex = 1;
             this.Txt_ScriptCode.Text = "";
             // 
@@ -191,24 +191,24 @@
             this.TabCtrl_Script.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.TabCtrl_Script.Controls.Add(this.Tab_Interpreted);
+            this.TabCtrl_Script.Controls.Add(this.Tab_Decompile);
             this.TabCtrl_Script.Controls.Add(this.Tab_RawBytecode);
             this.TabCtrl_Script.Location = new System.Drawing.Point(4, 120);
             this.TabCtrl_Script.Name = "TabCtrl_Script";
             this.TabCtrl_Script.SelectedIndex = 0;
-            this.TabCtrl_Script.Size = new System.Drawing.Size(760, 747);
+            this.TabCtrl_Script.Size = new System.Drawing.Size(916, 754);
             this.TabCtrl_Script.TabIndex = 2;
             // 
-            // Tab_Interpreted
+            // Tab_Decompile
             // 
-            this.Tab_Interpreted.Controls.Add(this.Txt_ScriptCode);
-            this.Tab_Interpreted.Location = new System.Drawing.Point(4, 22);
-            this.Tab_Interpreted.Name = "Tab_Interpreted";
-            this.Tab_Interpreted.Padding = new System.Windows.Forms.Padding(3);
-            this.Tab_Interpreted.Size = new System.Drawing.Size(752, 721);
-            this.Tab_Interpreted.TabIndex = 0;
-            this.Tab_Interpreted.Text = "Interpreted";
-            this.Tab_Interpreted.UseVisualStyleBackColor = true;
+            this.Tab_Decompile.Controls.Add(this.Txt_ScriptCode);
+            this.Tab_Decompile.Location = new System.Drawing.Point(4, 22);
+            this.Tab_Decompile.Name = "Tab_Decompile";
+            this.Tab_Decompile.Padding = new System.Windows.Forms.Padding(3);
+            this.Tab_Decompile.Size = new System.Drawing.Size(908, 728);
+            this.Tab_Decompile.TabIndex = 0;
+            this.Tab_Decompile.Text = "Decompile";
+            this.Tab_Decompile.UseVisualStyleBackColor = true;
             // 
             // Tab_RawBytecode
             // 
@@ -234,12 +234,13 @@
             this.Txt_ByteCode.Size = new System.Drawing.Size(739, 709);
             this.Txt_ByteCode.TabIndex = 0;
             this.Txt_ByteCode.Text = "";
+            this.Txt_ByteCode.WordWrap = false;
             // 
             // ScriptViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(776, 879);
+            this.ClientSize = new System.Drawing.Size(932, 886);
             this.Controls.Add(this.TabCtrl_Script);
             this.Controls.Add(this.Box_ScriptInfo);
             this.Name = "ScriptViewer";
@@ -248,7 +249,7 @@
             this.Box_ScriptInfo.ResumeLayout(false);
             this.Box_ScriptInfo.PerformLayout();
             this.TabCtrl_Script.ResumeLayout(false);
-            this.Tab_Interpreted.ResumeLayout(false);
+            this.Tab_Decompile.ResumeLayout(false);
             this.Tab_RawBytecode.ResumeLayout(false);
             this.ResumeLayout(false);
 
@@ -269,7 +270,7 @@
         private System.Windows.Forms.Label Lbl_Index;
         private System.Windows.Forms.Label Lbl_IndexDesc;
         private System.Windows.Forms.TabControl TabCtrl_Script;
-        private System.Windows.Forms.TabPage Tab_Interpreted;
+        private System.Windows.Forms.TabPage Tab_Decompile;
         private System.Windows.Forms.TabPage Tab_RawBytecode;
         private System.Windows.Forms.RichTextBox Txt_ByteCode;
     }
