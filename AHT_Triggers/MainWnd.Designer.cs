@@ -32,7 +32,9 @@
             this.List_Maps = new System.Windows.Forms.ListView();
             this.MapIndex = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.MapHash = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.MapNumTriggers = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.Check_OnlyScripted = new System.Windows.Forms.CheckBox();
             this.List_Triggers = new System.Windows.Forms.ListView();
             this.TriggerIndex = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.TriggerType = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -46,6 +48,7 @@
             this.Lbl_GameFlagsDesc = new System.Windows.Forms.Label();
             this.Lbl_GameFlags = new System.Windows.Forms.Label();
             this.Box_TriggerInfo = new System.Windows.Forms.GroupBox();
+            this.PicBox_TintColour = new System.Windows.Forms.PictureBox();
             this.Btn_ViewGameScript = new System.Windows.Forms.Button();
             this.Lbl_GeoHash = new System.Windows.Forms.Label();
             this.Lbl_GeoHashDesc = new System.Windows.Forms.Label();
@@ -82,15 +85,15 @@
             this.Lbl_TrigFlags = new System.Windows.Forms.Label();
             this.Lbl_TrigFlagsDesc = new System.Windows.Forms.Label();
             this.Btn_LoadFile = new System.Windows.Forms.Button();
-            this.PicBox_TintColour = new System.Windows.Forms.PictureBox();
-            this.Check_OnlyScripted = new System.Windows.Forms.CheckBox();
-            this.MapNumTriggers = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.Lbl_OpenedFileName = new System.Windows.Forms.Label();
+            this.Lbl_GameScriptDesc = new System.Windows.Forms.Label();
+            this.Lbl_GameScript = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.Box_TriggerInfo.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.PicBox_TintColour)).BeginInit();
             this.Box_TriggerLinks.SuspendLayout();
             this.Box_TriggerData.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.PicBox_TintColour)).BeginInit();
             this.SuspendLayout();
             // 
             // groupBox1
@@ -131,6 +134,11 @@
             this.MapHash.Text = "HashCode";
             this.MapHash.Width = 100;
             // 
+            // MapNumTriggers
+            // 
+            this.MapNumTriggers.Text = "Trigger Amount";
+            this.MapNumTriggers.Width = 103;
+            // 
             // groupBox2
             // 
             this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -144,6 +152,17 @@
             this.groupBox2.TabIndex = 2;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Triggers";
+            // 
+            // Check_OnlyScripted
+            // 
+            this.Check_OnlyScripted.AutoSize = true;
+            this.Check_OnlyScripted.Location = new System.Drawing.Point(7, 20);
+            this.Check_OnlyScripted.Name = "Check_OnlyScripted";
+            this.Check_OnlyScripted.Size = new System.Drawing.Size(146, 19);
+            this.Check_OnlyScripted.TabIndex = 1;
+            this.Check_OnlyScripted.Text = "Only Scripted Triggers";
+            this.Check_OnlyScripted.UseVisualStyleBackColor = true;
+            this.Check_OnlyScripted.CheckedChanged += new System.EventHandler(this.Check_OnlyScripted_CheckedChanged);
             // 
             // List_Triggers
             // 
@@ -178,7 +197,7 @@
             // TriggerSubType
             // 
             this.TriggerSubType.Text = "SubType";
-            this.TriggerSubType.Width = 129;
+            this.TriggerSubType.Width = 115;
             // 
             // TriggerHasScript
             // 
@@ -189,7 +208,7 @@
             // 
             this.Lbl_TriggerIndex.AutoSize = true;
             this.Lbl_TriggerIndex.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_TriggerIndex.Location = new System.Drawing.Point(6, 20);
+            this.Lbl_TriggerIndex.Location = new System.Drawing.Point(6, 29);
             this.Lbl_TriggerIndex.Name = "Lbl_TriggerIndex";
             this.Lbl_TriggerIndex.Size = new System.Drawing.Size(71, 20);
             this.Lbl_TriggerIndex.TabIndex = 3;
@@ -260,6 +279,8 @@
             this.Box_TriggerInfo.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.Box_TriggerInfo.Controls.Add(this.Lbl_GameScript);
+            this.Box_TriggerInfo.Controls.Add(this.Lbl_GameScriptDesc);
             this.Box_TriggerInfo.Controls.Add(this.PicBox_TintColour);
             this.Box_TriggerInfo.Controls.Add(this.Btn_ViewGameScript);
             this.Box_TriggerInfo.Controls.Add(this.Lbl_GeoHash);
@@ -309,9 +330,18 @@
             this.Box_TriggerInfo.Text = "Trigger Information";
             this.Box_TriggerInfo.Visible = false;
             // 
+            // PicBox_TintColour
+            // 
+            this.PicBox_TintColour.BackColor = System.Drawing.Color.Azure;
+            this.PicBox_TintColour.Location = new System.Drawing.Point(51, 340);
+            this.PicBox_TintColour.Name = "PicBox_TintColour";
+            this.PicBox_TintColour.Size = new System.Drawing.Size(60, 20);
+            this.PicBox_TintColour.TabIndex = 42;
+            this.PicBox_TintColour.TabStop = false;
+            // 
             // Btn_ViewGameScript
             // 
-            this.Btn_ViewGameScript.Location = new System.Drawing.Point(23, 379);
+            this.Btn_ViewGameScript.Location = new System.Drawing.Point(199, 370);
             this.Btn_ViewGameScript.Name = "Btn_ViewGameScript";
             this.Btn_ViewGameScript.Size = new System.Drawing.Size(145, 30);
             this.Btn_ViewGameScript.TabIndex = 41;
@@ -417,16 +447,17 @@
             // label1
             // 
             this.label1.AutoSize = true;
+            this.label1.ForeColor = System.Drawing.SystemColors.GrayText;
             this.label1.Location = new System.Drawing.Point(8, 24);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(34, 288);
+            this.label1.Size = new System.Drawing.Size(24, 288);
             this.label1.TabIndex = 1;
-            this.label1.Text = "0x0\r\n0x1\r\n0x2\r\n0x3\r\n0x4\r\n0x5\r\n0x6\r\n0x7\r\n0x8\r\n0x9\r\n0xA\r\n0xB\r\n0xC\r\n0xD\r\n0xE\r\n0xF\r\n";
+            this.label1.Text = "0\r\n1\r\n2\r\n3\r\n4\r\n5\r\n6\r\n7\r\n8\r\n9\r\n10\r\n11\r\n12\r\n13\r\n14\r\n15";
             // 
             // Lbl_TriggerData
             // 
             this.Lbl_TriggerData.AutoSize = true;
-            this.Lbl_TriggerData.Location = new System.Drawing.Point(53, 24);
+            this.Lbl_TriggerData.Location = new System.Drawing.Point(45, 24);
             this.Lbl_TriggerData.Name = "Lbl_TriggerData";
             this.Lbl_TriggerData.Size = new System.Drawing.Size(41, 288);
             this.Lbl_TriggerData.TabIndex = 0;
@@ -667,59 +698,70 @@
             // 
             this.Btn_LoadFile.Location = new System.Drawing.Point(11, 5);
             this.Btn_LoadFile.Name = "Btn_LoadFile";
-            this.Btn_LoadFile.Size = new System.Drawing.Size(75, 23);
+            this.Btn_LoadFile.Size = new System.Drawing.Size(109, 28);
             this.Btn_LoadFile.TabIndex = 11;
             this.Btn_LoadFile.Text = "Load File";
             this.Btn_LoadFile.UseVisualStyleBackColor = true;
             this.Btn_LoadFile.Click += new System.EventHandler(this.Btn_LoadFile_Click_1);
             // 
-            // PicBox_TintColour
+            // Lbl_OpenedFileName
             // 
-            this.PicBox_TintColour.BackColor = System.Drawing.Color.Azure;
-            this.PicBox_TintColour.Location = new System.Drawing.Point(51, 340);
-            this.PicBox_TintColour.Name = "PicBox_TintColour";
-            this.PicBox_TintColour.Size = new System.Drawing.Size(60, 20);
-            this.PicBox_TintColour.TabIndex = 42;
-            this.PicBox_TintColour.TabStop = false;
+            this.Lbl_OpenedFileName.AutoSize = true;
+            this.Lbl_OpenedFileName.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Lbl_OpenedFileName.Location = new System.Drawing.Point(126, 12);
+            this.Lbl_OpenedFileName.Name = "Lbl_OpenedFileName";
+            this.Lbl_OpenedFileName.Size = new System.Drawing.Size(91, 16);
+            this.Lbl_OpenedFileName.TabIndex = 12;
+            this.Lbl_OpenedFileName.Text = "No file loaded";
             // 
-            // Check_OnlyScripted
+            // Lbl_GameScriptDesc
             // 
-            this.Check_OnlyScripted.AutoSize = true;
-            this.Check_OnlyScripted.Location = new System.Drawing.Point(7, 20);
-            this.Check_OnlyScripted.Name = "Check_OnlyScripted";
-            this.Check_OnlyScripted.Size = new System.Drawing.Size(146, 19);
-            this.Check_OnlyScripted.TabIndex = 1;
-            this.Check_OnlyScripted.Text = "Only Scripted Triggers";
-            this.Check_OnlyScripted.UseVisualStyleBackColor = true;
-            this.Check_OnlyScripted.CheckedChanged += new System.EventHandler(this.Check_OnlyScripted_CheckedChanged);
+            this.Lbl_GameScriptDesc.AutoSize = true;
+            this.Lbl_GameScriptDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Lbl_GameScriptDesc.Location = new System.Drawing.Point(8, 375);
+            this.Lbl_GameScriptDesc.Name = "Lbl_GameScriptDesc";
+            this.Lbl_GameScriptDesc.Size = new System.Drawing.Size(141, 20);
+            this.Lbl_GameScriptDesc.TabIndex = 43;
+            this.Lbl_GameScriptDesc.Text = "GameScript Index:";
             // 
-            // MapNumTriggers
+            // Lbl_GameScript
             // 
-            this.MapNumTriggers.Text = "Trigger Amount";
-            this.MapNumTriggers.Width = 103;
+            this.Lbl_GameScript.AutoSize = true;
+            this.Lbl_GameScript.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Lbl_GameScript.Location = new System.Drawing.Point(148, 375);
+            this.Lbl_GameScript.Name = "Lbl_GameScript";
+            this.Lbl_GameScript.Size = new System.Drawing.Size(45, 20);
+            this.Lbl_GameScript.TabIndex = 44;
+            this.Lbl_GameScript.Text = "temp";
             // 
             // MainWnd
             // 
+            this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1131, 784);
+            this.Controls.Add(this.Lbl_OpenedFileName);
             this.Controls.Add(this.Btn_LoadFile);
             this.Controls.Add(this.Box_TriggerInfo);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Name = "MainWnd";
+            this.ShowIcon = false;
             this.Text = "Trigger Inspector";
+            this.DragDrop += new System.Windows.Forms.DragEventHandler(this.MainWnd_DragDrop);
+            this.DragEnter += new System.Windows.Forms.DragEventHandler(this.MainWnd_DragEnter);
             this.groupBox1.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.Box_TriggerInfo.ResumeLayout(false);
             this.Box_TriggerInfo.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.PicBox_TintColour)).EndInit();
             this.Box_TriggerLinks.ResumeLayout(false);
             this.Box_TriggerLinks.PerformLayout();
             this.Box_TriggerData.ResumeLayout(false);
             this.Box_TriggerData.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.PicBox_TintColour)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -781,6 +823,9 @@
         private System.Windows.Forms.PictureBox PicBox_TintColour;
         private System.Windows.Forms.CheckBox Check_OnlyScripted;
         private System.Windows.Forms.ColumnHeader MapNumTriggers;
+        private System.Windows.Forms.Label Lbl_OpenedFileName;
+        private System.Windows.Forms.Label Lbl_GameScript;
+        private System.Windows.Forms.Label Lbl_GameScriptDesc;
     }
 }
 

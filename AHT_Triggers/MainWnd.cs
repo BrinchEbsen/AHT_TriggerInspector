@@ -38,21 +38,30 @@ namespace AHT_Triggers
                 {
                     //Get the path of specified file
                     string filePath = openFileDialog.FileName;
-                    try
-                    {
-                        GamePlatform Platform = FileHandler.CheckPlatform(filePath);
-                        ViewingData = FileHandler.ReadTriggerData(filePath, Platform);
-                        SelectedMap = -1;
-                        SelectedTrigger = -1;
-
-                        PopulateMapList();
-                    }
-                    catch (IOException ex)
-                    {
-                        MessageBox.Show(ex.Message, "Error opening file",
-                            MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                    OpenGeoFile(filePath);
                 }
+            }
+        }
+
+        private void OpenGeoFile(string FilePath)
+        {
+            try
+            {
+                GamePlatform Platform = FileHandler.CheckPlatform(FilePath);
+                ViewingData = FileHandler.ReadTriggerData(FilePath, Platform);
+                SelectedMap = -1;
+                SelectedTrigger = -1;
+
+                string fileName = Path.GetFileName(FilePath);
+
+                Lbl_OpenedFileName.Text = "Viewing file " + fileName;
+
+                PopulateMapList();
+            }
+            catch (IOException ex)
+            {
+                MessageBox.Show(ex.Message, "Error opening file",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -68,7 +77,16 @@ namespace AHT_Triggers
                 {
                     ListViewItem lwi = List_Maps.Items.Add(i.ToString());
 
-                    lwi.SubItems.Add(string.Format("{0:X}", ViewingData[i].MapHash));
+                    uint mapHash = ViewingData[i].MapHash;
+
+                    if (Enum.IsDefined(typeof(EXHashCode), mapHash))
+                    {
+                        lwi.SubItems.Add( ((EXHashCode)mapHash).ToString() );
+                    } else
+                    {
+                        lwi.SubItems.Add( string.Format("{0:X}", mapHash) );
+                    }
+
                     lwi.SubItems.Add(ViewingData[i].TriggerList.Count.ToString());
                 }
             }
@@ -304,16 +322,44 @@ namespace AHT_Triggers
             if (trig.HasScript())
             {
                 Btn_ViewGameScript.Enabled = true;
+                Lbl_GameScript.Text = trig.ScriptIndex.ToString();
             } else
             {
                 Btn_ViewGameScript.Enabled = false;
+                Lbl_GameScript.Text = "None";
             }
         }
 
         private void Btn_ViewGameScript_Click(object sender, EventArgs e)
         {
             Trigger trig = ViewingData[SelectedMap].TriggerList[SelectedTrigger];
-            ScriptViewer scriptViewer = new ScriptViewer(trig);
+            bool doHighLight = true;
+
+            if (trig.Script.NumLines > 500)
+            {
+                DialogResult res = MessageBox.Show(
+                    "This gamescript is defined to be "+trig.Script.NumLines+" lines long and may take a long time to load. " +
+                    "Would you like to load without syntax highlighting?",
+                    "Long GameScript Warning",
+                    MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning
+                );
+
+                switch (res)
+                {
+                    case DialogResult.Yes:
+                        doHighLight = false;
+
+                        break;
+                    case DialogResult.No:
+                        doHighLight = true;
+
+                        break;
+                    case DialogResult.Cancel:
+                        return;
+                }
+            }
+
+            ScriptViewer scriptViewer = new ScriptViewer(trig, doHighLight);
             scriptViewer.StartPosition = FormStartPosition.CenterParent;
             scriptViewer.ShowDialog();
         }
@@ -321,6 +367,33 @@ namespace AHT_Triggers
         private void Check_OnlyScripted_CheckedChanged(object sender, EventArgs e)
         {
             PopulateTriggerList();
+        }
+
+        private void MainWnd_DragDrop(object sender, DragEventArgs e)
+        {
+            string[] s = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+
+            if (s.Length > 0)
+            {
+                string filePath = s[0];
+
+                if (filePath.IndexOf(".edb") > 0)
+                {
+                    OpenGeoFile(filePath);
+                } else
+                {
+                    MessageBox.Show("This tool only accepts .edb (geo) files.", "Unsupported file",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private void MainWnd_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                e.Effect = DragDropEffects.All;
+            else
+                e.Effect = DragDropEffects.None;
         }
     }
 }

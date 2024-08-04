@@ -216,7 +216,7 @@
             this.Tab_RawBytecode.Location = new System.Drawing.Point(4, 22);
             this.Tab_RawBytecode.Name = "Tab_RawBytecode";
             this.Tab_RawBytecode.Padding = new System.Windows.Forms.Padding(3);
-            this.Tab_RawBytecode.Size = new System.Drawing.Size(752, 721);
+            this.Tab_RawBytecode.Size = new System.Drawing.Size(908, 728);
             this.Tab_RawBytecode.TabIndex = 1;
             this.Tab_RawBytecode.Text = "Raw Bytecode";
             this.Tab_RawBytecode.UseVisualStyleBackColor = true;
@@ -231,7 +231,7 @@
             this.Txt_ByteCode.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(101)))), ((int)(((byte)(123)))), ((int)(((byte)(131)))));
             this.Txt_ByteCode.Location = new System.Drawing.Point(7, 6);
             this.Txt_ByteCode.Name = "Txt_ByteCode";
-            this.Txt_ByteCode.Size = new System.Drawing.Size(739, 709);
+            this.Txt_ByteCode.Size = new System.Drawing.Size(895, 709);
             this.Txt_ByteCode.TabIndex = 0;
             this.Txt_ByteCode.Text = "";
             this.Txt_ByteCode.WordWrap = false;
@@ -244,6 +244,7 @@
             this.Controls.Add(this.TabCtrl_Script);
             this.Controls.Add(this.Box_ScriptInfo);
             this.Name = "ScriptViewer";
+            this.ShowIcon = false;
             this.Text = "Script Viewer";
             this.Load += new System.EventHandler(this.ScriptViewer_Load);
             this.Box_ScriptInfo.ResumeLayout(false);

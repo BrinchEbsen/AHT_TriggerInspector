@@ -16,15 +16,17 @@ namespace AHT_Triggers
     public partial class ScriptViewer : Form
     {
         private Trigger trigger;
+        private bool doHighLight;
         private ByteCodeDecompiler decomp;
 
         private Color keywordCol  = Color.FromArgb(38, 139, 210);
         private Color hashcodeCol = Color.FromArgb(255, 0, 255);
         private Color commentCol  = Color.FromArgb(0x85, 0x99, 0);
 
-        public ScriptViewer(Trigger trigger)
+        public ScriptViewer(Trigger trigger, bool doHighLight)
         {
             this.trigger = trigger;
+            this.doHighLight = doHighLight;
             InitializeComponent();
         }
 
@@ -43,11 +45,12 @@ namespace AHT_Triggers
 
             Txt_ByteCode.Text = decomp.BytecodeToString();
 
-            Highlight();
+            if (doHighLight)
+                Highlight_ScriptCode();
         }
 
         //https://learn.microsoft.com/en-us/answers/questions/530055/how-to-color-a-specific-string-s-in-richtextbox-te
-        void Highlight()
+        void Highlight_ScriptCode()
         {
             const int WM_SETREDRAW = 0x000B;
 

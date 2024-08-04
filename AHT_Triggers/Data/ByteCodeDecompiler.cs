@@ -520,6 +520,12 @@ namespace AHT_Triggers.Data
             {
                 CodeLine line = script.Code[i];
 
+                foreach (Procedure proc in script.Procedures)
+                {
+                    if (proc.StartLine == i)
+                        sb.AppendLine("  DEFPROC " + proc.Name);
+                }
+
                 string str =
                     i.ToString().PadRight(4, ' ') +
                     string.Format("| instr: 0x{0:X}", line.InstructionID).PadRight(14, ' ') + "| data: [0x" +
