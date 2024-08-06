@@ -55,6 +55,7 @@ namespace AHT_Triggers.Data
             "SETARRAY",
             "EXCLUSIVE",
             "GETOBJECTIVE",
+            "SETOBJECTIVE",
             "SETANIM",
             "NEXTANIM",
             "GETDISTANCETOPLAYER",
