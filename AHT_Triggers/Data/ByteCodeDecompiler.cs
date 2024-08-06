@@ -940,7 +940,7 @@ namespace AHT_Triggers.Data
 
                     break;
                 case 0x3e: // SETOBJECTIVE <hash>
-                    str = "GETOBJECTIVE " + ValToString(line.Data4);
+                    str = "SETOBJECTIVE " + ValToString(line.Data4);
 
                     break;
                 case 0x40: // SETANIM <hash>
