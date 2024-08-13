@@ -30,12 +30,12 @@ namespace AHT_Triggers.Data
 
                     if (s == "GEOM")
                     {
-                        Console.WriteLine("File identified as big endian");
+                        //Console.WriteLine("File identified as big endian");
                         Endian = Endian.Big;
                     }
                     else if (s == "MOEG")
                     {
-                        Console.WriteLine("File identified as little endian");
+                        //Console.WriteLine("File identified as little endian");
                         Endian = Endian.Little;
                     }
                     else
@@ -86,7 +86,7 @@ namespace AHT_Triggers.Data
                         throw new IOException("Could not determine game version.");
                     }
 
-                    Console.WriteLine("File identified as " + Platform.ToString());
+                    //Console.WriteLine("File identified as " + Platform.ToString());
                 }
             }
 
@@ -113,7 +113,7 @@ namespace AHT_Triggers.Data
                         Console.WriteLine("No maps in file.");
                         throw new IOException("No maps found in geofile!");
                     }
-                    Console.WriteLine("Found "+numMaps+" maps");
+                    //Console.WriteLine("Found "+numMaps+" maps");
 
                     //Read pointer to map headers
                     stream.Seek(0x2, SeekOrigin.Current);
@@ -132,12 +132,12 @@ namespace AHT_Triggers.Data
                         //Read GeoMap address
                         stream.Seek(0x4, SeekOrigin.Current);
                         int pGeoMap = reader.ReadInt32();
-                        Console.WriteLine(string.Format("pGeoMap: {0:X}", pGeoMap));
+                        //Console.WriteLine(string.Format("pGeoMap: {0:X}", pGeoMap));
 
                         //Read Triggerheader address
                         stream.Seek(pGeoMap + 0x58, SeekOrigin.Begin);
                         int pTriggerHeader = reader.ReadRelPtr().GetAbsoluteAddress();
-                        Console.WriteLine(string.Format("pTriggerHeader: {0:X}", pTriggerHeader));
+                        //Console.WriteLine(string.Format("pTriggerHeader: {0:X}", pTriggerHeader));
 
                         //Read pointers to trigger data
                         stream.Seek(pTriggerHeader, SeekOrigin.Begin);
@@ -146,7 +146,7 @@ namespace AHT_Triggers.Data
                         int pTriggerScripts = reader.ReadRelPtr().GetAbsoluteAddress();
                         int pTriggerTypes = reader.ReadRelPtr().GetAbsoluteAddress();
 
-                        Console.WriteLine("Number of triggers: "+numTriggers);
+                        //Console.WriteLine("Number of triggers: "+numTriggers);
 
                         //Loop through all triggers
                         map.TriggerList = new List<Trigger>();
@@ -156,9 +156,9 @@ namespace AHT_Triggers.Data
 
                             //Read trigger pointer
                             stream.Seek(pTriggerList + (0x8 * j), SeekOrigin.Begin);
-                            Console.WriteLine(string.Format("Read from Triggerlist at: {0:X}", stream.Position));
+                            //Console.WriteLine(string.Format("Read from Triggerlist at: {0:X}", stream.Position));
                             int pTrigger = reader.ReadRelPtr().GetAbsoluteAddress();
-                            Console.WriteLine(string.Format("pTrigger: {0:X}", pTrigger));
+                            //Console.WriteLine(string.Format("pTrigger: {0:X}", pTrigger));
 
                             //Read trigger information
                             stream.Seek(pTrigger, SeekOrigin.Begin);
@@ -222,8 +222,8 @@ namespace AHT_Triggers.Data
                                 //Read from scripts table
                                 stream.Seek(pTriggerScripts + (trigger.ScriptIndex * 0x8), SeekOrigin.Begin);
                                 int pScriptData = reader.ReadRelPtr().GetAbsoluteAddress();
-                                Console.WriteLine(string.Format("ScriptIndex: {0}", trigger.ScriptIndex));
-                                Console.WriteLine(string.Format("pScriptData: {0:X}", pScriptData));
+                                //Console.WriteLine(string.Format("ScriptIndex: {0}", trigger.ScriptIndex));
+                                //Console.WriteLine(string.Format("pScriptData: {0:X}", pScriptData));
 
                                 //Read all the script's data
 
@@ -279,6 +279,13 @@ namespace AHT_Triggers.Data
                                     CodeLine line = new CodeLine();
 
                                     line.InstructionID = reader.ReadByte();
+
+                                    //debug
+                                    if (line.InstructionID == 0x38)
+                                    {
+                                        Console.WriteLine("ARRAY FOUND IN SCRIPT #" + trigger.ScriptIndex.ToString());
+                                    }
+
                                     line.Data1 = reader.ReadByte();
                                     line.Data2 = reader.ReadByte();
                                     line.Data3 = reader.ReadByte();

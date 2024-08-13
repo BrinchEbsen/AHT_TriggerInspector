@@ -33,7 +33,6 @@ namespace AHT_Triggers
         private void ScriptViewer_Load(object sender, EventArgs e)
         {
             GameScript script = trigger.Script;
-            decomp = new ByteCodeDecompiler(script);
 
             Lbl_Index.Text   = trigger.ScriptIndex.ToString();
             Lbl_Lines.Text   = script.NumLines.ToString();
@@ -41,7 +40,22 @@ namespace AHT_Triggers
             Lbl_Locals.Text  = (script.NumVars - script.NumGlobals).ToString();
             Lbl_Procs.Text   = script.NumProcs.ToString();
 
-            Txt_ScriptCode.Text = decomp.ScriptToString();
+            InsertDecompiledCode();
+        }
+
+        private void InsertDecompiledCode()
+        {
+            decomp = new ByteCodeDecompiler(trigger.Script);
+
+            Txt_ScriptCode.Text = decomp.DecompileScript(out DecodeResult res);
+
+            if (res == DecodeResult.NegativeIndent)
+            {
+                MessageBox.Show("The decompiler enountered negative indentation," +
+                    " which either means there was a mistake while decompiling, or the gamescript's data is corrupted.",
+                    "Decompiler Warning",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
 
             Txt_ByteCode.Text = decomp.BytecodeToString();
 

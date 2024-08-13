@@ -88,13 +88,6 @@ namespace AHT_Triggers.Data
         {
             return (TrigFlags & 0x10000000) != 0;
         }
-
-        public string DecodeScript()
-        {
-            ByteCodeDecompiler decompiler = new ByteCodeDecompiler(this.Script);
-
-            return decompiler.ScriptToString();
-        }
     }
 
     //A list of instructions organized into procedures, with a set of local/global variables.

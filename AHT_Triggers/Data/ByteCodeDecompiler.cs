@@ -14,10 +14,15 @@ namespace AHT_Triggers.Data
         public int index;
         public int proc;
     }
+    public enum DecodeResult
+    {
+        Success,
+        NegativeIndent
+    }
 
     internal class ByteCodeDecompiler
     {
-        private GameScript script { get; set; }
+        public GameScript Script { get; set; }
 
         //Amount of space before the line of code that is deciphered
         private int Indentation = 0;
@@ -58,42 +63,27 @@ namespace AHT_Triggers.Data
 
         public ByteCodeDecompiler(GameScript script)
         {
-            this.script = script;
-        }
-
-        private void IncIndentation(int num)
-        {
-            Indentation += num;
-        }
-
-        private void DecIndentation(int num)
-        {
-            Indentation -= num;
-            if (Indentation < 0 )
-            {
-                Indentation = 0;
-                Console.WriteLine("WARNING: Indentation became negative!");
-            }
+            this.Script = script;
         }
 
         //Return the name of the procedure at the given index into the ProcTable.
         //Adds the index to the end of the name, if another procedure with the same name exists.
         private string GetProcName(int proc)
         {
-            if (script.Procedures.Count == 0)
+            if (Script.Procedures.Count == 0)
             {
                 return "ERR!";
             }
 
-            string name = script.Procedures[proc].Name;
+            string name = Script.Procedures[proc].Name;
 
-            for (int i = 0; i < script.Procedures.Count; i++)
+            for (int i = 0; i < Script.Procedures.Count; i++)
             {
                 //Don't examine the same procedure
                 if (i == proc) { continue; }
 
                 //If the name is idential to other procedures, add its index onto the end so it can be identified.
-                if (script.Procedures[i].Name == name)
+                if (Script.Procedures[i].Name == name)
                 {
                     return name + "_" + proc.ToString();
                 }
@@ -187,7 +177,7 @@ namespace AHT_Triggers.Data
         //Store information about used variables for later
         private void TrackVar(int i)
         {
-            if (i < script.NumGlobals)
+            if (i < Script.NumGlobals)
             {
                 if (i > 23) //There are 24 language-defined globals that are always present
                 {
@@ -224,10 +214,10 @@ namespace AHT_Triggers.Data
         {
             if (TrackVars) { TrackVar(i); }
 
-            if (i >= script.NumGlobals)
+            if (i >= Script.NumGlobals)
             {
                 //Local variable
-                return "loc" + (i - script.NumGlobals);
+                return "loc" + (i - Script.NumGlobals);
             } else if (i > 23)
             {
                 //Global variable (outside procedure scope)
@@ -264,50 +254,67 @@ namespace AHT_Triggers.Data
             }
         }
 
+        private string AddIndentToCommand(string s)
+        {
+            if (Indentation < 0)
+            {
+                return s;
+            } else
+            {
+                return new string(' ', Indentation * INDENT_LEVEL) + s;
+            }
+        }
+
         /// <summary>
         /// Add the indentation to a code line, and increase/decrease accordingly
         /// </summary>
         /// <param name="instr">String representing the line of code</param>
         /// <returns>Indented line of code</returns>
-        private string AddIndent(string instr)
+        private string AddIndent(string instr, out bool becameNegative)
         {
             string str;
 
             switch (indentState)
             {
                 case IndentState.None:
-                    str = new string(' ', Indentation * INDENT_LEVEL) + instr;
+                    str = AddIndentToCommand(instr);
                     break;
                 case IndentState.IncAfter:
-                    str = new string(' ', Indentation * INDENT_LEVEL) + instr;
-                    IncIndentation(1);
+                    str = AddIndentToCommand(instr);
+                    Indentation += 1;
                     break;
                 case IndentState.DecBefore:
-                    DecIndentation(1);
-                    str = new string(' ', Indentation * INDENT_LEVEL) + instr;
+                    Indentation -= 1;
+                    str = AddIndentToCommand(instr);
                     break;
                 case IndentState.DecBeforeIncAfter:
-                    DecIndentation(1);
-                    str = new string(' ', Indentation * INDENT_LEVEL) + instr;
-                    IncIndentation(1);
+                    Indentation -= 1;
+                    str = AddIndentToCommand(instr);
+                    Indentation += 1;
                     break;
                 case IndentState.IncTwiceAfter:
-                    str = new string(' ', Indentation * INDENT_LEVEL) + instr;
-                    IncIndentation(2);
+                    str = AddIndentToCommand(instr);
+                    Indentation += 2;
                     break;
                 case IndentState.DecTwiceBefore:
-                    DecIndentation(2);
-                    str = new string(' ', Indentation * INDENT_LEVEL) + instr;
+                    Indentation -= 2;
+                    str = AddIndentToCommand(instr);
                     break;
                 default:
                     str = "INVALID INDENTATION";
                     break;
             }
 
-            if (indentState != IndentState.None)
+            if (Indentation < 0)
             {
-                indentState = IndentState.None;
+                Indentation = 0;
+                becameNegative = true;
+            } else
+            {
+                becameNegative = false;
             }
+
+            indentState = IndentState.None;
 
             return str;
         }
@@ -318,8 +325,10 @@ namespace AHT_Triggers.Data
         /// Decompile the gamescript.
         /// </summary>
         /// <returns>Decompiled gamescript contained in a string.</returns>
-        public string ScriptToString()
+        public string DecompileScript(out DecodeResult res)
         {
+            res = DecodeResult.Success;
+
             //Clear lists of procedures and labels
             ProcHeaders.Clear();
             LabelHeaders.Clear();
@@ -338,12 +347,12 @@ namespace AHT_Triggers.Data
 
             //First pass:
             //Add a string to the list for each line, keep note of labels and procedures as we encounter them
-            for (int i = 0; i<script.NumLines; i++)
+            for (int i = 0; i<Script.NumLines; i++)
             {
                 //Check for start of procedure
-                for (int j = 0; j < script.Procedures.Count; j++)
+                for (int j = 0; j < Script.Procedures.Count; j++)
                 {
-                    Procedure p = script.Procedures[j];
+                    Procedure p = Script.Procedures[j];
 
                     if (p.StartLine == i)
                     {
@@ -364,18 +373,28 @@ namespace AHT_Triggers.Data
                 }
 
                 //Check for goto so we can add labels
-                if (script.Code[i].InstructionID == 0x14)
+                if (Script.Code[i].InstructionID == 0x14)
                 {
                     //If we've found a new label, add it to the list
-                    if (!LabelHeaders.ContainsKey(script.Code[i].Data4))
+                    if (!LabelHeaders.ContainsKey(Script.Code[i].Data4))
                     {
-                        LabelHeaders.Add(script.Code[i].Data4, "lbl_" + labelnr);
+                        LabelHeaders.Add(Script.Code[i].Data4, "lbl_" + labelnr);
                         labelnr++;
                     }
                 }
 
-                //Add string to the list after adding the indentation
-                string str = AddIndent(DecipherCommand(script.Code[i]));
+                //Get decoded command from the bytecode
+                string command = DecipherCommand(Script.Code[i]);
+                
+                //Add proper whitespace before command
+                string str = AddIndent(command, out bool becameNegative);
+
+                //Report a negative indentation if it occours
+                if (becameNegative)
+                {
+                    res = DecodeResult.NegativeIndent;
+                }
+
                 codeStr.Add(str);
             }
 
@@ -400,7 +419,7 @@ namespace AHT_Triggers.Data
             //Keep track of which procedures we've added
             CurrentProc = -1;
 
-            for (int i = 0; i < script.NumLines; i++)
+            for (int i = 0; i < Script.NumLines; i++)
             {
                 //Check if a list contains a value at a given line of code (+ the drift), and insert the name if so.
 
@@ -516,11 +535,11 @@ namespace AHT_Triggers.Data
         {
             StringBuilder sb = new StringBuilder();
 
-            for (int i = 0; i < script.NumLines; i++)
+            for (int i = 0; i < Script.NumLines; i++)
             {
-                CodeLine line = script.Code[i];
+                CodeLine line = Script.Code[i];
 
-                foreach (Procedure proc in script.Procedures)
+                foreach (Procedure proc in Script.Procedures)
                 {
                     if (proc.StartLine == i)
                         sb.AppendLine("  DEFPROC " + proc.Name);
