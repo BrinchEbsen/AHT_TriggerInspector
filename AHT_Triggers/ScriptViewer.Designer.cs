@@ -44,6 +44,8 @@
             this.Tab_Decompile = new System.Windows.Forms.TabPage();
             this.Tab_RawBytecode = new System.Windows.Forms.TabPage();
             this.Txt_ByteCode = new System.Windows.Forms.RichTextBox();
+            this.Check_ShowUnknown = new System.Windows.Forms.CheckBox();
+            this.Btn_EditVarNames = new System.Windows.Forms.Button();
             this.Box_ScriptInfo.SuspendLayout();
             this.TabCtrl_Script.SuspendLayout();
             this.Tab_Decompile.SuspendLayout();
@@ -54,6 +56,8 @@
             // 
             this.Box_ScriptInfo.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.Box_ScriptInfo.Controls.Add(this.Btn_EditVarNames);
+            this.Box_ScriptInfo.Controls.Add(this.Check_ShowUnknown);
             this.Box_ScriptInfo.Controls.Add(this.Lbl_Index);
             this.Box_ScriptInfo.Controls.Add(this.Lbl_IndexDesc);
             this.Box_ScriptInfo.Controls.Add(this.Lbl_Procs);
@@ -236,6 +240,31 @@
             this.Txt_ByteCode.Text = "";
             this.Txt_ByteCode.WordWrap = false;
             // 
+            // Check_ShowUnknown
+            // 
+            this.Check_ShowUnknown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.Check_ShowUnknown.AutoSize = true;
+            this.Check_ShowUnknown.Checked = true;
+            this.Check_ShowUnknown.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.Check_ShowUnknown.Location = new System.Drawing.Point(751, 15);
+            this.Check_ShowUnknown.Name = "Check_ShowUnknown";
+            this.Check_ShowUnknown.Size = new System.Drawing.Size(159, 17);
+            this.Check_ShowUnknown.TabIndex = 10;
+            this.Check_ShowUnknown.Text = "Show Unknown Instructions";
+            this.Check_ShowUnknown.UseVisualStyleBackColor = true;
+            this.Check_ShowUnknown.CheckedChanged += new System.EventHandler(this.Check_ShowUnknown_CheckedChanged);
+            // 
+            // Btn_EditVarNames
+            // 
+            this.Btn_EditVarNames.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.Btn_EditVarNames.Location = new System.Drawing.Point(775, 64);
+            this.Btn_EditVarNames.Name = "Btn_EditVarNames";
+            this.Btn_EditVarNames.Size = new System.Drawing.Size(131, 35);
+            this.Btn_EditVarNames.TabIndex = 11;
+            this.Btn_EditVarNames.Text = "Edit Variable Names";
+            this.Btn_EditVarNames.UseVisualStyleBackColor = true;
+            this.Btn_EditVarNames.Click += new System.EventHandler(this.Btn_EditVarNames_Click);
+            // 
             // ScriptViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -246,6 +275,7 @@
             this.Name = "ScriptViewer";
             this.ShowIcon = false;
             this.Text = "Script Viewer";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.ScriptViewer_FormClosing);
             this.Load += new System.EventHandler(this.ScriptViewer_Load);
             this.Box_ScriptInfo.ResumeLayout(false);
             this.Box_ScriptInfo.PerformLayout();
@@ -274,5 +304,7 @@
         private System.Windows.Forms.TabPage Tab_Decompile;
         private System.Windows.Forms.TabPage Tab_RawBytecode;
         private System.Windows.Forms.RichTextBox Txt_ByteCode;
+        private System.Windows.Forms.CheckBox Check_ShowUnknown;
+        private System.Windows.Forms.Button Btn_EditVarNames;
     }
 }

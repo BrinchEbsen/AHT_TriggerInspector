@@ -55,8 +55,15 @@
     <Compile Include="Data\EDBReader.cs" />
     <Compile Include="Data\EDBWriter.cs" />
     <Compile Include="Data\FileHandler.cs" />
+    <Compile Include="Data\GameScriptSaveInfo.cs" />
     <Compile Include="Data\SyntaxHighlight.cs" />
     <Compile Include="Data\Trigger.cs" />
+    <Compile Include="EditVars.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EditVars.Designer.cs">
+      <DependentUpon>EditVars.cs</DependentUpon>
+    </Compile>
     <Compile Include="MainWnd.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -71,6 +78,9 @@
     <Compile Include="ScriptViewer.Designer.cs">
       <DependentUpon>ScriptViewer.cs</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="EditVars.resx">
+      <DependentUpon>EditVars.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainWnd.resx">
       <DependentUpon>MainWnd.cs</DependentUpon>
     </EmbeddedResource>

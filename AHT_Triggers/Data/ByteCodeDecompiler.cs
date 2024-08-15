@@ -23,6 +23,8 @@ namespace AHT_Triggers.Data
     internal class ByteCodeDecompiler
     {
         public GameScript Script { get; set; }
+        public GameScriptSaveInfo SaveInfo { get; set; }
+        public bool ShowUnknown {  get; set; }
 
         //Amount of space before the line of code that is deciphered
         private int Indentation = 0;
@@ -68,7 +70,7 @@ namespace AHT_Triggers.Data
 
         //Return the name of the procedure at the given index into the ProcTable.
         //Adds the index to the end of the name, if another procedure with the same name exists.
-        private string GetProcName(int proc)
+        public string GenerateProcName(int proc)
         {
             if (Script.Procedures.Count == 0)
             {
@@ -90,6 +92,43 @@ namespace AHT_Triggers.Data
             }
 
             return name;
+        }
+
+        public string GetProcName(int proc)
+        {
+            if (SaveInfo != null)
+            {
+                return SaveInfo.GetProc(proc);
+            }
+
+            return GenerateProcName(proc);
+        }
+
+        public Dictionary<int, string> GenerateLabels()
+        {
+            Dictionary<int, string> labels = new Dictionary<int, string>();
+            int index = 0;
+
+            for (int i = 0; i < Script.NumLines; i++)
+            {
+                if (Script.Code[i].InstructionID == 0x14)
+                {
+                    int lineNum = Script.Code[i].Data4;
+
+                    if (!labels.ContainsKey(lineNum))
+                    {
+                        labels.Add(lineNum, "lbl_" + index.ToString());
+                        index++;
+                    }
+                }
+            }
+
+            return labels;
+        }
+
+        public string GetLabel(int lineNr)
+        {
+            return SaveInfo.Labels[lineNr];
         }
 
         //Create a compare statement between two variables/values with a given operator ID
@@ -210,10 +249,8 @@ namespace AHT_Triggers.Data
         /// </summary>
         /// <param name="i">Variable index</param>
         /// <returns>Name</returns>
-        private string GetVarName(int i)
+        public string GenerateVarName(int i)
         {
-            if (TrackVars) { TrackVar(i); }
-
             if (i >= Script.NumGlobals)
             {
                 //Local variable
@@ -224,15 +261,24 @@ namespace AHT_Triggers.Data
                 return "glo" + (i - 24);
             } else
             {
-                //Language variable (reserved for specific things)
                 if (LVAR_NAMES.ContainsKey(i))
                 {
                     return LVAR_NAMES[i];
-                } else
-                {
-                    return "lvar" + i;
                 }
+                return "LVAR" + i;
             }
+        }
+
+        private string GetVarName(int i)
+        {
+            if (TrackVars) { TrackVar(i); }
+
+            if (SaveInfo != null)
+            {
+                return SaveInfo.GetVar(i);
+            }
+
+            return GenerateVarName(i);
         }
 
         /// <summary>
@@ -331,7 +377,9 @@ namespace AHT_Triggers.Data
 
             //Clear lists of procedures and labels
             ProcHeaders.Clear();
-            LabelHeaders.Clear();
+            LabelHeaders = GenerateLabels();
+
+            Indentation = 0;
 
             CurrentProc = -1;
 
@@ -339,15 +387,12 @@ namespace AHT_Triggers.Data
             TrackedGlobals = new List<int>();
             TrackedLocals = new List<LocalVar>();
 
-            //Keep track of labels we're creating
-            int labelnr = 0;
-
             //Create list of strings
             List<string> codeStr = new List<string>();
 
             //First pass:
             //Add a string to the list for each line, keep note of labels and procedures as we encounter them
-            for (int i = 0; i<Script.NumLines; i++)
+            for (int i = 0; i < Script.NumLines; i++)
             {
                 //Check for start of procedure
                 for (int j = 0; j < Script.Procedures.Count; j++)
@@ -372,19 +417,15 @@ namespace AHT_Triggers.Data
                     }
                 }
 
-                //Check for goto so we can add labels
-                if (Script.Code[i].InstructionID == 0x14)
-                {
-                    //If we've found a new label, add it to the list
-                    if (!LabelHeaders.ContainsKey(Script.Code[i].Data4))
-                    {
-                        LabelHeaders.Add(Script.Code[i].Data4, "lbl_" + labelnr);
-                        labelnr++;
-                    }
-                }
-
                 //Get decoded command from the bytecode
+                indentState = IndentState.None;
                 string command = DecipherCommand(Script.Code[i]);
+
+                //Ignore command if it came back empty
+                if (command == string.Empty)
+                {
+                    continue;
+                }
                 
                 //Add proper whitespace before command
                 string str = AddIndent(command, out bool becameNegative);
@@ -395,6 +436,7 @@ namespace AHT_Triggers.Data
                     res = DecodeResult.NegativeIndent;
                 }
 
+                //Finally, add it to the list of strings
                 codeStr.Add(str);
             }
 
@@ -458,9 +500,21 @@ namespace AHT_Triggers.Data
                 }
 
                 //If the line number has an associated label, add it
-                if (LabelHeaders.ContainsKey(i))
+                string lblName = null;
+                if (SaveInfo != null)
                 {
-                    codeStr.Insert(i + offs, new string(' ', INDENT_LEVEL) + "LABEL " + LabelHeaders[i]);
+                    if (SaveInfo.Labels.ContainsKey(i))
+                    {
+                        lblName = SaveInfo.Labels[i];
+                    }
+                } else if (LabelHeaders.ContainsKey(i))
+                {
+                    lblName = LabelHeaders[i];
+                }
+
+                if (lblName != null)
+                {
+                    codeStr.Insert(i + offs, new string(' ', INDENT_LEVEL) + "LABEL " + lblName);
                     offs++;
                 }
 
@@ -506,15 +560,24 @@ namespace AHT_Triggers.Data
                     continue;
                 }
 
-                //Check if a label exists at this line number
-                if (!LabelHeaders.ContainsKey(lineNum))
+                string lblName;
+                if (SaveInfo != null)
                 {
-                    Console.WriteLine("Line number does not correspond to any label: "+lineNum);
-                    continue;
+                    lblName = SaveInfo.Labels[lineNum];
+                } else
+                {
+                    //Check if a label exists at this line number
+                    if (!LabelHeaders.ContainsKey(lineNum))
+                    {
+                        Console.WriteLine("Line number does not correspond to any label: " + lineNum);
+                        continue;
+                    }
+
+                    lblName = LabelHeaders[lineNum];
                 }
 
                 //Replace the tag with the label name
-                codeStr[i] = codeStr[i].Replace("#L" + lineNum, LabelHeaders[lineNum]);
+                codeStr[i] = codeStr[i].Replace("#L" + lineNum, lblName);
             }
 
             //Build string and return it
@@ -1471,7 +1534,14 @@ namespace AHT_Triggers.Data
 
                     break;
                 default:
-                    str = string.Format("// Unknown Instruction: 0x{0:X}", line.InstructionID);
+                    if (ShowUnknown)
+                    {
+                        str = string.Format("// Unknown Instruction: 0x{0:X}", line.InstructionID);
+                    } else
+                    {
+                        str = string.Empty;
+                    }
+                    
                     break;
             }
 

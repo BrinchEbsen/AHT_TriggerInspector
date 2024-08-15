@@ -17,8 +17,10 @@ namespace AHT_Triggers
     public partial class MainWnd : Form
     {
         List<MapTriggerData> ViewingData = null;
+        string ViewingFile;
         int SelectedMap = -1;
         int SelectedTrigger = -1;
+        ScriptViewer scriptViewer;
 
         public MainWnd()
         {
@@ -52,9 +54,9 @@ namespace AHT_Triggers
                 SelectedMap = -1;
                 SelectedTrigger = -1;
 
-                string fileName = Path.GetFileName(FilePath);
+                ViewingFile = Path.GetFileName(FilePath);
 
-                Lbl_OpenedFileName.Text = "Viewing file " + fileName;
+                Lbl_OpenedFileName.Text = "Viewing file " + ViewingFile;
 
                 PopulateMapList();
             }
@@ -332,13 +334,26 @@ namespace AHT_Triggers
 
         private void Btn_ViewGameScript_Click(object sender, EventArgs e)
         {
+            if (scriptViewer == null)
+            {
+                OpenScriptViewer();
+            } else if (scriptViewer.IsDisposed)
+            {
+                OpenScriptViewer();
+            }
+        }
+
+        private void OpenScriptViewer()
+        {
             Trigger trig = ViewingData[SelectedMap].TriggerList[SelectedTrigger];
             bool doHighLight = true;
 
+            //Show a warning if the gamescript is long, and let the user choose
+            //whether to apply syntax highlighting, since that's the lengthiest part of the process.
             if (trig.Script.NumLines > 500)
             {
                 DialogResult res = MessageBox.Show(
-                    "This gamescript is defined to be "+trig.Script.NumLines+" lines long and may take a long time to load. " +
+                    "This gamescript is defined to be " + trig.Script.NumLines + " lines long and may take a long time to load. " +
                     "Would you like to load without syntax highlighting?",
                     "Long GameScript Warning",
                     MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning
@@ -359,9 +374,9 @@ namespace AHT_Triggers
                 }
             }
 
-            ScriptViewer scriptViewer = new ScriptViewer(trig, doHighLight);
+            scriptViewer = new ScriptViewer(this, trig, SelectedMap, ViewingFile, doHighLight);
             scriptViewer.StartPosition = FormStartPosition.CenterParent;
-            scriptViewer.ShowDialog();
+            scriptViewer.Show();
         }
 
         private void Check_OnlyScripted_CheckedChanged(object sender, EventArgs e)
