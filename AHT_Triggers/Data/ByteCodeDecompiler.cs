@@ -419,7 +419,7 @@ namespace AHT_Triggers.Data
 
                 //Get decoded command from the bytecode
                 indentState = IndentState.None;
-                string command = DecipherCommand(Script.Code[i]);
+                string command = DecipherCommand(Script.Code[i], i);
 
                 //Ignore command if it came back empty
                 if (command == string.Empty)
@@ -622,7 +622,7 @@ namespace AHT_Triggers.Data
                     string.Format("{0:X}",            line.Data2).PadLeft(2, '0')           + "] [0x" +
                     string.Format("{0:X}",            line.Data3).PadLeft(2, '0')           + "] [0x" +
                     string.Format("{0:X}",            line.Data4).PadLeft(8, '0')           + "] | " + 
-                    DecipherCommand(line);
+                    DecipherCommand(line, i);
 
                 sb.AppendLine(str);
             }
@@ -635,7 +635,7 @@ namespace AHT_Triggers.Data
         /// </summary>
         /// <param name="line">Line of code to decipher</param>
         /// <returns>Deciphered line of code</returns>
-        public string DecipherCommand(CodeLine line)
+        public string DecipherCommand(CodeLine line, int lineNr)
         {
             string str;
             string val;
@@ -815,7 +815,23 @@ namespace AHT_Triggers.Data
 
                     break;
                 case 0x1e: // ENDPROC <optional var/value>
-                    indentState = IndentState.DecBefore;
+                    indentState = IndentState.None;
+
+                    //Change indentation if another procedure starts right after
+                    foreach (Procedure proc in Script.Procedures)
+                    {
+                        if (proc.StartLine == lineNr+1)
+                        {
+                            indentState = IndentState.DecBefore;
+                            break;
+                        }
+                    }
+                    //Change indentation if its the last command of the gamescript
+                    if (lineNr == Script.NumLines-1)
+                    {
+                        indentState = IndentState.DecBefore;
+                    }
+
                     if (line.Data1 == 0)
                     {
                         str = "ENDPROC";
