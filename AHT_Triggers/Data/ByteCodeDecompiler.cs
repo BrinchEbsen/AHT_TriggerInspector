@@ -447,13 +447,20 @@ namespace AHT_Triggers.Data
             //Keep track of how far we've drifted using a variable, so we don't add a line to the wrong place
             int offs = 0;
 
-            //Add list of defined constants at the top
-            if (TrackedGlobals.Count > 0)
+            //Add list of global declarations at the top
+            if (Script.NumGlobals > 0)
             {
-                int i;
-                for (i = 0; i < TrackedGlobals.Count; i++)
+                for (int i = 24; i < Script.NumGlobals; i++)
                 {
-                    codeStr.Insert(offs, "INT " + GetVarName(TrackedGlobals[i]));
+                    string str = "INT " + GetVarName(i);
+
+                    //If we never encountered the global, then we mark it as unused.
+                    if (!TrackedGlobals.Contains(i))
+                    {
+                        str += " //Unused global";
+                    }
+
+                    codeStr.Insert(offs, str);
                     offs++;
                 }
             }
@@ -1226,8 +1233,16 @@ namespace AHT_Triggers.Data
                     str = "SETFILEHASH " + ValToString(line.Data4);
 
                     break;
-                case 0x6f: // YESNOBOX <hash>
-                    str = "YESNOBOX " + ValToString(line.Data4);
+                case 0x6f: // YESNOBOX <var/hash>
+                    if ((line.Data4 & 0xFF000000) == 0)
+                    {
+                        val = GetVarName(line.Data4);
+                    } else
+                    {
+                        val = ValToString(line.Data4);
+                    }
+
+                    str = "YESNOBOX " + val;
 
                     break;
                 case 0x70: // HEROTOLINKEDPOINT <ref>

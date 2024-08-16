@@ -112,7 +112,8 @@ namespace AHT_Triggers
 
         private void Btn_Reset_Click(object sender, EventArgs e)
         {
-            DialogResult res = MessageBox.Show("Are you sure you want to reset the names of all variables, procedures and labels?",
+            DialogResult res = MessageBox.Show(
+                "Are you sure you want to reset the names of all variables, procedures and labels to their auto-generated versions?",
                 "Resetting saved gamescript names",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
 

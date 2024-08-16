@@ -153,7 +153,7 @@ namespace AHT_Triggers.Data
                             //If nothing changed, it's formatted wrong
                             if (n == line)
                             {
-                                throw new FormatException("Marker for label with line number " + varIndex + " is incorrect. "
+                                throw new FormatException("Marker for variable with index " + varIndex + " is incorrect. "
                                     + "Line read: " + line);
                             }
                             Info.AddVar(n);
@@ -166,7 +166,7 @@ namespace AHT_Triggers.Data
                             //If nothing changed, it's formatted wrong
                             if (n == line)
                             {
-                                throw new FormatException("Marker for label with line number " + procIndex + " is incorrect. "
+                                throw new FormatException("Marker for procedure with index " + procIndex + " is incorrect. "
                                     + "Line read: " + line);
                             }
                             Info.AddProc(n);
