@@ -46,6 +46,9 @@
             this.Tab_Decompile = new System.Windows.Forms.TabPage();
             this.Tab_RawBytecode = new System.Windows.Forms.TabPage();
             this.Txt_ByteCode = new System.Windows.Forms.RichTextBox();
+            this.List_VTable = new System.Windows.Forms.ListView();
+            this.Lbl_VTable = new System.Windows.Forms.Label();
+            this.Functions = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.Box_ScriptInfo.SuspendLayout();
             this.TabCtrl_Script.SuspendLayout();
             this.Tab_Decompile.SuspendLayout();
@@ -56,6 +59,8 @@
             // 
             this.Box_ScriptInfo.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.Box_ScriptInfo.Controls.Add(this.Lbl_VTable);
+            this.Box_ScriptInfo.Controls.Add(this.List_VTable);
             this.Box_ScriptInfo.Controls.Add(this.Btn_EditVarNames);
             this.Box_ScriptInfo.Controls.Add(this.Check_ShowUnknown);
             this.Box_ScriptInfo.Controls.Add(this.Lbl_Index);
@@ -70,7 +75,7 @@
             this.Box_ScriptInfo.Controls.Add(this.Lbl_LinesDesc);
             this.Box_ScriptInfo.Location = new System.Drawing.Point(4, 4);
             this.Box_ScriptInfo.Name = "Box_ScriptInfo";
-            this.Box_ScriptInfo.Size = new System.Drawing.Size(916, 110);
+            this.Box_ScriptInfo.Size = new System.Drawing.Size(913, 138);
             this.Box_ScriptInfo.TabIndex = 0;
             this.Box_ScriptInfo.TabStop = false;
             this.Box_ScriptInfo.Text = "GameScript Information";
@@ -78,9 +83,9 @@
             // Btn_EditVarNames
             // 
             this.Btn_EditVarNames.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.Btn_EditVarNames.Location = new System.Drawing.Point(775, 64);
+            this.Btn_EditVarNames.Location = new System.Drawing.Point(807, 102);
             this.Btn_EditVarNames.Name = "Btn_EditVarNames";
-            this.Btn_EditVarNames.Size = new System.Drawing.Size(131, 35);
+            this.Btn_EditVarNames.Size = new System.Drawing.Size(100, 30);
             this.Btn_EditVarNames.TabIndex = 11;
             this.Btn_EditVarNames.Text = "Edit Names";
             this.Btn_EditVarNames.UseVisualStyleBackColor = true;
@@ -92,7 +97,7 @@
             this.Check_ShowUnknown.AutoSize = true;
             this.Check_ShowUnknown.Checked = true;
             this.Check_ShowUnknown.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.Check_ShowUnknown.Location = new System.Drawing.Point(751, 15);
+            this.Check_ShowUnknown.Location = new System.Drawing.Point(748, 81);
             this.Check_ShowUnknown.Name = "Check_ShowUnknown";
             this.Check_ShowUnknown.Size = new System.Drawing.Size(159, 17);
             this.Check_ShowUnknown.TabIndex = 10;
@@ -211,7 +216,7 @@
             this.Txt_ScriptCode.Location = new System.Drawing.Point(7, 6);
             this.Txt_ScriptCode.Name = "Txt_ScriptCode";
             this.Txt_ScriptCode.ReadOnly = true;
-            this.Txt_ScriptCode.Size = new System.Drawing.Size(895, 716);
+            this.Txt_ScriptCode.Size = new System.Drawing.Size(892, 749);
             this.Txt_ScriptCode.TabIndex = 1;
             this.Txt_ScriptCode.Text = "";
             // 
@@ -222,10 +227,10 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.TabCtrl_Script.Controls.Add(this.Tab_Decompile);
             this.TabCtrl_Script.Controls.Add(this.Tab_RawBytecode);
-            this.TabCtrl_Script.Location = new System.Drawing.Point(4, 120);
+            this.TabCtrl_Script.Location = new System.Drawing.Point(4, 148);
             this.TabCtrl_Script.Name = "TabCtrl_Script";
             this.TabCtrl_Script.SelectedIndex = 0;
-            this.TabCtrl_Script.Size = new System.Drawing.Size(916, 754);
+            this.TabCtrl_Script.Size = new System.Drawing.Size(913, 787);
             this.TabCtrl_Script.TabIndex = 2;
             // 
             // Tab_Decompile
@@ -234,7 +239,7 @@
             this.Tab_Decompile.Location = new System.Drawing.Point(4, 22);
             this.Tab_Decompile.Name = "Tab_Decompile";
             this.Tab_Decompile.Padding = new System.Windows.Forms.Padding(3);
-            this.Tab_Decompile.Size = new System.Drawing.Size(908, 728);
+            this.Tab_Decompile.Size = new System.Drawing.Size(905, 761);
             this.Tab_Decompile.TabIndex = 0;
             this.Tab_Decompile.Text = "Decompile";
             this.Tab_Decompile.UseVisualStyleBackColor = true;
@@ -265,11 +270,34 @@
             this.Txt_ByteCode.Text = "";
             this.Txt_ByteCode.WordWrap = false;
             // 
+            // List_VTable
+            // 
+            this.List_VTable.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.Functions});
+            this.List_VTable.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.List_VTable.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
+            this.List_VTable.HideSelection = false;
+            this.List_VTable.Location = new System.Drawing.Point(165, 26);
+            this.List_VTable.Name = "List_VTable";
+            this.List_VTable.Size = new System.Drawing.Size(184, 106);
+            this.List_VTable.TabIndex = 12;
+            this.List_VTable.UseCompatibleStateImageBehavior = false;
+            this.List_VTable.View = System.Windows.Forms.View.Details;
+            // 
+            // Lbl_VTable
+            // 
+            this.Lbl_VTable.AutoSize = true;
+            this.Lbl_VTable.Location = new System.Drawing.Point(162, 10);
+            this.Lbl_VTable.Name = "Lbl_VTable";
+            this.Lbl_VTable.Size = new System.Drawing.Size(41, 13);
+            this.Lbl_VTable.TabIndex = 13;
+            this.Lbl_VTable.Text = "VTable";
+            // 
             // ScriptViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(932, 886);
+            this.ClientSize = new System.Drawing.Size(929, 947);
             this.Controls.Add(this.TabCtrl_Script);
             this.Controls.Add(this.Box_ScriptInfo);
             this.Name = "ScriptViewer";
@@ -306,5 +334,8 @@
         private System.Windows.Forms.RichTextBox Txt_ByteCode;
         private System.Windows.Forms.CheckBox Check_ShowUnknown;
         private System.Windows.Forms.Button Btn_EditVarNames;
+        private System.Windows.Forms.Label Lbl_VTable;
+        private System.Windows.Forms.ListView List_VTable;
+        private System.Windows.Forms.ColumnHeader Functions;
     }
 }

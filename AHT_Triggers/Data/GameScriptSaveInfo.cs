@@ -31,15 +31,25 @@ namespace AHT_Triggers.Data
 
         public string GetVar(int index)
         {
-            return Vars[index];
+            try
+            {
+                return Vars[index];
+            } catch { return "INVALID_VAR"; }
         }
         public string GetProc(int index)
         {
-            return Procs[index];
+            try
+            {
+                return Procs[index];
+            } catch { return "INVALID_PROC"; }
         }
         public string GetLabel(int index)
         {
-            return Labels[index];
+            try
+            {
+                return Labels[index];
+            }
+            catch { return "INVALID_LABEL"; }
         }
 
         public void SetVar(int index, string val)

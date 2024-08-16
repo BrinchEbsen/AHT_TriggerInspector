@@ -68,13 +68,36 @@ namespace AHT_Triggers.Data
             this.Script = script;
         }
 
+        public List<string> GetVTable()
+        {
+            List<string> list = new List<string>();
+
+            int i = 0;
+            foreach (byte b in Script.VTable)
+            {
+                string index = (i + " - ").PadLeft(5, ' ');
+
+                if ((b >= 0) && (b < Script.Procedures.Count))
+                {
+                    list.Add(index + GetProcName(b));
+                } else
+                {
+                    list.Add(index + "(none)");
+                }
+
+                i++;
+            }
+
+            return list;
+        }
+
         //Return the name of the procedure at the given index into the ProcTable.
         //Adds the index to the end of the name, if another procedure with the same name exists.
         public string GenerateProcName(int proc)
         {
             if (Script.Procedures.Count == 0)
             {
-                return "ERR!";
+                return "INVALID_PROC";
             }
 
             string name = Script.Procedures[proc].Name;
@@ -159,7 +182,7 @@ namespace AHT_Triggers.Data
                     break;
             }
 
-            if ((oper & 0b1000) == 1)
+            if ((oper & 0b1000) != 0)
             {
                 str = "NOT " + str;
             }
@@ -373,16 +396,20 @@ namespace AHT_Triggers.Data
         /// <returns>Decompiled gamescript contained in a string.</returns>
         public string DecompileScript(out DecodeResult res)
         {
+            //Default result
             res = DecodeResult.Success;
 
-            //Clear lists of procedures and labels
+            //Start lists of procedures and labels
             ProcHeaders.Clear();
             LabelHeaders = GenerateLabels();
 
+            //Reset indentation
             Indentation = 0;
 
+            //Reset current procedure
             CurrentProc = -1;
 
+            //Start tracking variables
             TrackVars = true;
             TrackedGlobals = new List<int>();
             TrackedLocals = new List<LocalVar>();
@@ -418,7 +445,6 @@ namespace AHT_Triggers.Data
                 }
 
                 //Get decoded command from the bytecode
-                indentState = IndentState.None;
                 string command = DecipherCommand(Script.Code[i], i);
 
                 //Ignore command if it came back empty
@@ -443,7 +469,7 @@ namespace AHT_Triggers.Data
             TrackVars = false;
 
             //Second pass:
-            //Add procedure headers and labels, relocate "AND" statements
+            //Add procedure headers, labels, variable declarations and relocate "AND" statements
             //Keep track of how far we've drifted using a variable, so we don't add a line to the wrong place
             int offs = 0;
 
@@ -462,6 +488,38 @@ namespace AHT_Triggers.Data
 
                     codeStr.Insert(offs, str);
                     offs++;
+                }
+            }
+
+            //Add info about unused locals, if any exist
+            int numLocals = Script.NumVars - Script.NumGlobals;
+            if (numLocals > TrackedLocals.Count)
+            {
+                //Insert empty line beforehand
+                codeStr.Insert(offs, "");
+                offs++;
+                codeStr.Insert(offs, "//Unused locals:");
+                offs++;
+
+                //Loop through all local variables
+                for (int i = Script.NumVars - numLocals; i < Script.NumVars; i++)
+                {
+                    //Check if we've tracked this local
+                    bool exist = false;
+                    foreach (LocalVar v in TrackedLocals)
+                    {
+                        if (v.index == i)
+                        {
+                            exist = true;
+                            break;
+                        }
+                    }
+
+                    if (!exist)
+                    {
+                        codeStr.Insert(offs, "//  "+GetVarName(i));
+                        offs++;
+                    }
                 }
             }
 
@@ -637,6 +695,8 @@ namespace AHT_Triggers.Data
         /// <returns>Deciphered line of code</returns>
         public string DecipherCommand(CodeLine line, int lineNr)
         {
+            indentState = IndentState.None;
+
             string str;
             string val;
 
@@ -1516,8 +1576,8 @@ namespace AHT_Triggers.Data
                     str = GetVarName(line.Data3) + " = ISTHEREANEWSHOPITEM";
 
                     break;
-                case 0xa9: // CUTSEQUENCEWITHTRIGGERS
-                    str = "CUTSEQUENCEWITHTRIGGERS";
+                case 0xa9: // TRIGGERCUTSEQUENCE
+                    str = "TRIGGERCUTSEQUENCE";
 
                     break;
                 case 0xaa: // RESETTIMER

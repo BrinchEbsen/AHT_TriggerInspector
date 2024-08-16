@@ -11,6 +11,10 @@ namespace AHT_Triggers
 {
     public partial class ScriptViewer : Form
     {
+        //DLL import for better textbox manipulation
+        [DllImport("user32")]
+        private extern static IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wp, IntPtr lp);
+
         private readonly Trigger trigger;
         private readonly bool doHighLight;
         private readonly string viewingFile;
@@ -74,6 +78,24 @@ namespace AHT_Triggers
             }
 
             Txt_ByteCode.Text = decomp.BytecodeToString();
+
+            List_VTable.Columns[0].Width = List_VTable.Width - 30;
+            List_VTable.Items.Clear();
+
+            List<string> VTable = decomp.GetVTable();
+
+            foreach(string proc in VTable)
+            {
+                var lwi = List_VTable.Items.Add(proc);
+
+                if (lwi.Text.IndexOf("(none)") >= 0)
+                {
+                    lwi.ForeColor = Color.Gray;
+                } else
+                {
+                    lwi.ForeColor = Color.Black;
+                }
+            }
 
             if (doHighLight)
                 Highlight_ScriptCode();
@@ -178,9 +200,6 @@ namespace AHT_Triggers
             SendMessage(Txt_ScriptCode.Handle, WM_SETREDRAW, new IntPtr(1), IntPtr.Zero);
             Txt_ScriptCode.Invalidate();
         }
-
-        [DllImport("user32")]
-        private extern static IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wp, IntPtr lp);
 
         private void Check_ShowUnknown_CheckedChanged(object sender, EventArgs e)
         {
