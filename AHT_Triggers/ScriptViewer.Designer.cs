@@ -29,6 +29,8 @@
         private void InitializeComponent()
         {
             this.Box_ScriptInfo = new System.Windows.Forms.GroupBox();
+            this.Btn_EditVarNames = new System.Windows.Forms.Button();
+            this.Check_ShowUnknown = new System.Windows.Forms.CheckBox();
             this.Lbl_Index = new System.Windows.Forms.Label();
             this.Lbl_IndexDesc = new System.Windows.Forms.Label();
             this.Lbl_Procs = new System.Windows.Forms.Label();
@@ -44,8 +46,6 @@
             this.Tab_Decompile = new System.Windows.Forms.TabPage();
             this.Tab_RawBytecode = new System.Windows.Forms.TabPage();
             this.Txt_ByteCode = new System.Windows.Forms.RichTextBox();
-            this.Check_ShowUnknown = new System.Windows.Forms.CheckBox();
-            this.Btn_EditVarNames = new System.Windows.Forms.Button();
             this.Box_ScriptInfo.SuspendLayout();
             this.TabCtrl_Script.SuspendLayout();
             this.Tab_Decompile.SuspendLayout();
@@ -74,6 +74,31 @@
             this.Box_ScriptInfo.TabIndex = 0;
             this.Box_ScriptInfo.TabStop = false;
             this.Box_ScriptInfo.Text = "GameScript Information";
+            // 
+            // Btn_EditVarNames
+            // 
+            this.Btn_EditVarNames.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.Btn_EditVarNames.Location = new System.Drawing.Point(775, 64);
+            this.Btn_EditVarNames.Name = "Btn_EditVarNames";
+            this.Btn_EditVarNames.Size = new System.Drawing.Size(131, 35);
+            this.Btn_EditVarNames.TabIndex = 11;
+            this.Btn_EditVarNames.Text = "Edit Names";
+            this.Btn_EditVarNames.UseVisualStyleBackColor = true;
+            this.Btn_EditVarNames.Click += new System.EventHandler(this.Btn_EditVarNames_Click);
+            // 
+            // Check_ShowUnknown
+            // 
+            this.Check_ShowUnknown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.Check_ShowUnknown.AutoSize = true;
+            this.Check_ShowUnknown.Checked = true;
+            this.Check_ShowUnknown.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.Check_ShowUnknown.Location = new System.Drawing.Point(751, 15);
+            this.Check_ShowUnknown.Name = "Check_ShowUnknown";
+            this.Check_ShowUnknown.Size = new System.Drawing.Size(159, 17);
+            this.Check_ShowUnknown.TabIndex = 10;
+            this.Check_ShowUnknown.Text = "Show Unknown Instructions";
+            this.Check_ShowUnknown.UseVisualStyleBackColor = true;
+            this.Check_ShowUnknown.CheckedChanged += new System.EventHandler(this.Check_ShowUnknown_CheckedChanged);
             // 
             // Lbl_Index
             // 
@@ -239,31 +264,6 @@
             this.Txt_ByteCode.TabIndex = 0;
             this.Txt_ByteCode.Text = "";
             this.Txt_ByteCode.WordWrap = false;
-            // 
-            // Check_ShowUnknown
-            // 
-            this.Check_ShowUnknown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.Check_ShowUnknown.AutoSize = true;
-            this.Check_ShowUnknown.Checked = true;
-            this.Check_ShowUnknown.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.Check_ShowUnknown.Location = new System.Drawing.Point(751, 15);
-            this.Check_ShowUnknown.Name = "Check_ShowUnknown";
-            this.Check_ShowUnknown.Size = new System.Drawing.Size(159, 17);
-            this.Check_ShowUnknown.TabIndex = 10;
-            this.Check_ShowUnknown.Text = "Show Unknown Instructions";
-            this.Check_ShowUnknown.UseVisualStyleBackColor = true;
-            this.Check_ShowUnknown.CheckedChanged += new System.EventHandler(this.Check_ShowUnknown_CheckedChanged);
-            // 
-            // Btn_EditVarNames
-            // 
-            this.Btn_EditVarNames.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.Btn_EditVarNames.Location = new System.Drawing.Point(775, 64);
-            this.Btn_EditVarNames.Name = "Btn_EditVarNames";
-            this.Btn_EditVarNames.Size = new System.Drawing.Size(131, 35);
-            this.Btn_EditVarNames.TabIndex = 11;
-            this.Btn_EditVarNames.Text = "Edit Variable Names";
-            this.Btn_EditVarNames.UseVisualStyleBackColor = true;
-            this.Btn_EditVarNames.Click += new System.EventHandler(this.Btn_EditVarNames_Click);
             // 
             // ScriptViewer
             // 

@@ -11,138 +11,44 @@ namespace AHT_Triggers
 {
     public partial class ScriptViewer : Form
     {
-        private MainWnd MainWnd;
-        private Trigger trigger;
-        private bool doHighLight;
-        private string viewingFile;
-        private int selectedMap;
+        private readonly Trigger trigger;
+        private readonly bool doHighLight;
+        private readonly string viewingFile;
+        private readonly int selectedMap;
         private ByteCodeDecompiler decomp;
         private EditVars VarWnd;
 
-        private GameScriptSaveInfo SaveInfo = new GameScriptSaveInfo();
-
-        private Color keywordCol  = Color.FromArgb(38, 139, 210);
-        private Color hashcodeCol = Color.FromArgb(255, 0, 255);
-        private Color commentCol  = Color.FromArgb(0x85, 0x99, 0);
+        private static readonly Color COLOR_KEYWORD  = Color.FromArgb(38, 139, 210);
+        private static readonly Color COLOR_HASHCODE = Color.FromArgb(255, 0, 255);
+        private static readonly Color COLOR_COMMENT  = Color.FromArgb(0x85, 0x99, 0);
 
         //Constructor needs all the info to know what file to load
-        public ScriptViewer(MainWnd parent, Trigger trigger, int selectedMap, string viewingFile, bool doHighLight)
+        public ScriptViewer(Trigger trigger, int selectedMap, string viewingFile, bool doHighLight)
         {
-            this.MainWnd = parent;
             this.trigger = trigger;
             this.doHighLight = doHighLight;
             this.viewingFile = viewingFile;
             this.selectedMap = selectedMap;
             InitializeComponent();
         }
-        
-        private void LoadVarNames()
-        {
-            string filepath = GetVarNamesFilePath();
-
-            //If the file doesn't exist already, create a new list
-            if (!File.Exists(filepath))
-            {
-                InitialiseSaveInfo(SaveInfo);
-                return;
-            }
-
-            SaveInfo.Clear();
-
-            try
-            {
-                using (StreamReader reader = new StreamReader(new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)))
-                {
-                    string line = reader.ReadLine();
-                    int varIndex = 0;
-                    int procIndex = 0;
-
-                    while (line != null)
-                    {
-                        //We know we're done
-                        //if (varIndex > trigger.Script.NumVars)
-                        //{
-                        //    break;
-                        //}
-
-                        if (line.IndexOf("VAR") == 0)
-                        {
-                            string n = line.Replace(string.Format("VAR #{0}: ", varIndex), "");
-                            SaveInfo.AddVar(n);
-                            varIndex++;
-                        } else if (line.IndexOf("PROC") == 0)
-                        {
-                            string n = line.Replace(string.Format("PROC #{0}: ", procIndex), "");
-                            SaveInfo.AddProc(n);
-                            procIndex++;
-                        } else if (line.IndexOf("LABEL") == 0)
-                        {
-                            int i1 = line.IndexOf("#");
-                            int i2 = line.IndexOf(":");
-
-                            string s_lineNr = line.Substring(i1+1, i2 - i1 - 1);
-                            int lineNr = int.Parse(s_lineNr);
-
-                            string n = line.Replace(string.Format("LABEL #{0}: ", lineNr), "");
-                            SaveInfo.AddLabel(lineNr, n);
-                        }
-
-                        line = reader.ReadLine();
-                    }
-                }
-            } catch (IOException ex)
-            {
-                MessageBox.Show(ex.Message, "Error loading saved variable names",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-        }
-
-        public GameScriptSaveInfo InitialiseSaveInfo(GameScriptSaveInfo info)
-        {
-            info.Clear();
-
-            for (int i = 0; i < trigger.Script.NumVars; i++)
-            {
-                info.AddVar(decomp.GenerateVarName(i));
-            }
-
-            for (int i = 0; i < trigger.Script.NumProcs; i++)
-            {
-                info.AddProc(decomp.GenerateProcName(i));
-            }
-
-            info.Labels = decomp.GenerateLabels();
-
-            return info;
-        }
-
-        private string GetVarNamesFilePath()
-        {
-            //return "C:\\Users\\Ebbers\\Documents\\test.txt";
-
-            string folderpath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "gs_vars");
-            Console.WriteLine(folderpath);
-
-            if (!Directory.Exists(folderpath))
-            {
-                Directory.CreateDirectory(folderpath);
-            }
-
-            string filename = string.Format("{0}_{1}_{2}.txt",
-                viewingFile.Replace(".edb", ""),
-                selectedMap,
-                trigger.ScriptIndex);
-            return Path.Combine(folderpath, filename);
-        }
 
         private void ScriptViewer_Load(object sender, EventArgs e)
         {
             decomp = new ByteCodeDecompiler(trigger.Script);
 
-            LoadVarNames();
+            try
+            {
+                ScriptSaveInfoHandler.LoadInfoFromFile(viewingFile, selectedMap, trigger);
+            } catch (IOException ex)
+            {
+                MessageBox.Show(ex.Message, "Error loading edited names from file",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+                ScriptSaveInfoHandler.InitialiseSaveInfo(trigger.Script);
+            }
 
             decomp.ShowUnknown = Check_ShowUnknown.Checked;
-            decomp.SaveInfo = SaveInfo;
+            decomp.SaveInfo = ScriptSaveInfoHandler.ActiveInfo;
 
             GameScript script = trigger.Script;
 
@@ -198,7 +104,7 @@ namespace AHT_Triggers
                 {
                     Txt_ScriptCode.SelectionStart = p;
                     Txt_ScriptCode.SelectionLength = s.Length;
-                    Txt_ScriptCode.SelectionColor = keywordCol;
+                    Txt_ScriptCode.SelectionColor = COLOR_KEYWORD;
                      
                     p += 1;
                 }
@@ -236,7 +142,7 @@ namespace AHT_Triggers
 
                 Txt_ScriptCode.SelectionStart = p;
                 Txt_ScriptCode.SelectionLength = n;
-                Txt_ScriptCode.SelectionColor = hashcodeCol;
+                Txt_ScriptCode.SelectionColor = COLOR_HASHCODE;
 
                 p += n;
             }
@@ -260,7 +166,7 @@ namespace AHT_Triggers
 
                 Txt_ScriptCode.SelectionStart = p;
                 Txt_ScriptCode.SelectionLength = n;
-                Txt_ScriptCode.SelectionColor = commentCol;
+                Txt_ScriptCode.SelectionColor = COLOR_COMMENT;
 
                 p += n;
             }
@@ -296,7 +202,7 @@ namespace AHT_Triggers
 
         private void CreateEditVarsWnd()
         {
-            VarWnd = new EditVars(this, SaveInfo);
+            VarWnd = new EditVars(this, viewingFile, selectedMap, trigger);
             VarWnd.StartPosition = FormStartPosition.CenterParent;
             VarWnd.Show();
         }
@@ -305,38 +211,6 @@ namespace AHT_Triggers
         private void ScriptViewer_FormClosing(object sender, FormClosingEventArgs e)
         {
             VarWnd?.Dispose();
-        }
-
-        public void SaveScriptInfo(GameScriptSaveInfo newInfo)
-        {
-            SaveInfo = newInfo;
-
-            string filepath = GetVarNamesFilePath();
-
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(new FileStream(filepath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite)))
-                {
-                    for (int i = 0; i < SaveInfo.NumVars(); i++)
-                    {
-                        writer.WriteLine(string.Format("VAR #{0}: ", i) + SaveInfo.GetVar(i));
-                    }
-                    for (int i = 0; i < SaveInfo.NumProcs(); i++)
-                    {
-                        writer.WriteLine(string.Format("PROC #{0}: ", i) + SaveInfo.GetProc(i));
-                    }
-                    foreach (KeyValuePair<int, string> entry in SaveInfo.Labels)
-                    {
-                        writer.WriteLine(string.Format("LABEL #{0}: ", entry.Key) + entry.Value);
-                    }
-
-                    writer.Flush();
-                }
-            } catch (IOException ex)
-            {
-                MessageBox.Show(ex.Message, "Error saving variable names",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
         }
     }
 }

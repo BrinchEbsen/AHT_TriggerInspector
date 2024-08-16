@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,14 +14,18 @@ namespace AHT_Triggers
 {
     public partial class EditVars : Form
     {
-        private ScriptViewer ScriptViewerWnd;
-        private GameScriptSaveInfo SaveInfo;
+        private readonly ScriptViewer ScriptViewerWnd;
+        private readonly string viewingFile;
+        private readonly int selectedMap;
+        private readonly Trigger trigger;
 
-        public EditVars(ScriptViewer parent, GameScriptSaveInfo saveInfo)
+        public EditVars(ScriptViewer parent, string viewingFile, int selectedMap, Trigger trigger)
         {
             InitializeComponent();
             ScriptViewerWnd = parent;
-            this.SaveInfo = saveInfo;
+            this.viewingFile = viewingFile;
+            this.selectedMap = selectedMap;
+            this.trigger = trigger;
         }
 
         private void EditVars_Load(object sender, EventArgs e)
@@ -38,15 +43,17 @@ namespace AHT_Triggers
             DGV_Procs.Columns[0].Width  = DGV_Procs.Width  - 20;
             DGV_Labels.Columns[0].Width = DGV_Labels.Width - 20;
 
-            for (int i = 0; i < SaveInfo.NumVars(); i++)
+            GameScriptSaveInfo Info = ScriptSaveInfoHandler.ActiveInfo;
+
+            for (int i = 0; i < Info.NumVars(); i++)
             {
-                DGV_Vars.Rows.Add(SaveInfo.GetVar(i));
+                DGV_Vars.Rows.Add(Info.GetVar(i));
             }
-            for (int i = 0; i < SaveInfo.NumProcs(); i++)
+            for (int i = 0; i < Info.NumProcs(); i++)
             {
-                DGV_Procs.Rows.Add(SaveInfo.GetProc(i));
+                DGV_Procs.Rows.Add(Info.GetProc(i));
             }
-            foreach (KeyValuePair<int, string> entry in SaveInfo.Labels)
+            foreach (KeyValuePair<int, string> entry in Info.Labels)
             {
                 DGV_Labels.Rows.Add(entry.Value);
             }
@@ -54,31 +61,41 @@ namespace AHT_Triggers
 
         private void SaveScriptInfo()
         {
+            GameScriptSaveInfo Info = ScriptSaveInfoHandler.ActiveInfo;
+
             //Save line numbers for later
             List<int> lineNrs = new List<int>();
-            foreach(KeyValuePair<int, string> entry in SaveInfo.Labels)
+            foreach(KeyValuePair<int, string> entry in Info.Labels)
             {
                 lineNrs.Add(entry.Key);
             }
 
-            SaveInfo.Clear();
+            Info.Clear();
 
             foreach (DataGridViewRow row in DGV_Vars.Rows)
             {
-                SaveInfo.AddVar(row.Cells[0].Value.ToString());
+                Info.AddVar(row.Cells[0].Value.ToString());
             }
             foreach(DataGridViewRow row in DGV_Procs.Rows)
             {
-                SaveInfo.AddProc(row.Cells[0].Value.ToString());
+                Info.AddProc(row.Cells[0].Value.ToString());
             }
             int index = 0;
             foreach (DataGridViewRow row in DGV_Labels.Rows)
             {
-                SaveInfo.AddLabel(lineNrs[index], row.Cells[0].Value.ToString());
+                Info.AddLabel(lineNrs[index], row.Cells[0].Value.ToString());
                 index++;
             }
 
-            ScriptViewerWnd.SaveScriptInfo(SaveInfo);
+            try
+            {
+                ScriptSaveInfoHandler.SaveInfoToFile(viewingFile, selectedMap, trigger);
+            } catch (IOException ex)
+            {
+                MessageBox.Show(ex.Message, "Error saving names to file",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            
             ScriptViewerWnd.InsertDecompiledCode();
         }
 
@@ -89,7 +106,8 @@ namespace AHT_Triggers
 
         private void DGV_Vars_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            SaveInfo.SetVar(e.RowIndex, DGV_Vars.Rows[e.RowIndex].Cells[0].Value.ToString());
+            GameScriptSaveInfo Info = ScriptSaveInfoHandler.ActiveInfo;
+            Info.SetVar(e.RowIndex, DGV_Vars.Rows[e.RowIndex].Cells[0].Value.ToString());
         }
 
         private void Btn_Reset_Click(object sender, EventArgs e)
@@ -100,8 +118,18 @@ namespace AHT_Triggers
 
             if (res == DialogResult.Yes)
             {
-                SaveInfo = ScriptViewerWnd.InitialiseSaveInfo(SaveInfo);
-                ScriptViewerWnd.SaveScriptInfo(SaveInfo);
+                ScriptSaveInfoHandler.InitialiseSaveInfo(trigger.Script);
+
+                try
+                {
+                    ScriptSaveInfoHandler.SaveInfoToFile(viewingFile, selectedMap, trigger);
+                }
+                catch (IOException ex)
+                {
+                    MessageBox.Show(ex.Message, "Error saving names to file",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+
                 ScriptViewerWnd.InsertDecompiledCode();
                 PopulateLists();
             }

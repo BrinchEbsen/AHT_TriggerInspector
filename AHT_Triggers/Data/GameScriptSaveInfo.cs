@@ -6,10 +6,22 @@ using System.Threading.Tasks;
 
 namespace AHT_Triggers.Data
 {
+    /// <summary>
+    /// Contains lists of names for variables, procedures and labels with the usual access methods for all.
+    /// </summary>
     public class GameScriptSaveInfo
     {
-        private List<string> Vars   = new List<string>();
-        private List<string> Procs  = new List<string>();
+        /// <summary>
+        /// Variables
+        /// </summary>
+        private readonly List<string> Vars = new List<string>();
+        /// <summary>
+        /// Procedures
+        /// </summary>
+        private readonly List<string> Procs = new List<string>();
+        /// <summary>
+        /// Labels - key is line number, value is name
+        /// </summary>
         public Dictionary<int, string> Labels { get; set; }
 
         public GameScriptSaveInfo()

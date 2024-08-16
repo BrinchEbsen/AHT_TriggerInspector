@@ -24,13 +24,13 @@ namespace AHT_Triggers.Data
     {
         public GameScript Script { get; set; }
         public GameScriptSaveInfo SaveInfo { get; set; }
-        public bool ShowUnknown {  get; set; }
+        public bool ShowUnknown { get; set; }
 
         //Amount of space before the line of code that is deciphered
         private int Indentation = 0;
 
         //How many spaces are added for each indentation level
-        private readonly int INDENT_LEVEL = 2;
+        private static readonly int INDENT_LEVEL = 2;
 
         //Lists to keep track of information regarding variables during the script decompile
         private List<LocalVar> TrackedLocals;

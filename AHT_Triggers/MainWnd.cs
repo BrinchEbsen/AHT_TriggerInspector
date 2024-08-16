@@ -374,7 +374,7 @@ namespace AHT_Triggers
                 }
             }
 
-            scriptViewer = new ScriptViewer(this, trig, SelectedMap, ViewingFile, doHighLight);
+            scriptViewer = new ScriptViewer(trig, SelectedMap, ViewingFile, doHighLight);
             scriptViewer.StartPosition = FormStartPosition.CenterParent;
             scriptViewer.Show();
         }
