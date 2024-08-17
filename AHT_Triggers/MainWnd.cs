@@ -107,31 +107,38 @@ namespace AHT_Triggers
             List_Triggers.Items.Clear();
             Box_TriggerInfo.Visible = false;
 
-            if (ViewingData != null)
+            if (ViewingData == null)
             {
-                for (int i = 0; i < ViewingData[SelectedMap].TriggerList.Count; i++)
+                return;
+            }
+
+            if ((SelectedMap < 0) && (SelectedMap >= ViewingData.Count))
+            {
+                return;
+            }
+
+            for (int i = 0; i < ViewingData[SelectedMap].TriggerList.Count; i++)
+            {
+                Trigger trig = ViewingData[SelectedMap].TriggerList[i];
+
+                if (Check_OnlyScripted.Checked & !trig.HasScript())
                 {
-                    Trigger trig = ViewingData[SelectedMap].TriggerList[i];
-
-                    if (Check_OnlyScripted.Checked & !trig.HasScript())
-                    {
-                        continue;
-                    }
-
-                    ListViewItem item = List_Triggers.Items.Add(i.ToString());
-                    item.SubItems.Add(trig.Type.ToString().Replace("HT_TriggerType_", ""));
-                    if (trig.SubType != EXHashCode.HT_TriggerSubType_Undefined)
-                    {
-                        item.SubItems.Add(trig.SubType.ToString().Replace("HT_TriggerSubType_", ""));
-                    } else
-                    {
-                        item.SubItems.Add("");
-                    }
-
-                    item.SubItems.Add(
-                        trig.HasScript() ? trig.ScriptIndex.ToString() : ""
-                    );
+                    continue;
                 }
+
+                ListViewItem item = List_Triggers.Items.Add(i.ToString());
+                item.SubItems.Add(trig.Type.ToString().Replace("HT_TriggerType_", ""));
+                if (trig.SubType != EXHashCode.HT_TriggerSubType_Undefined)
+                {
+                    item.SubItems.Add(trig.SubType.ToString().Replace("HT_TriggerSubType_", ""));
+                } else
+                {
+                    item.SubItems.Add("");
+                }
+
+                item.SubItems.Add(
+                    trig.HasScript() ? trig.ScriptIndex.ToString() : ""
+                );
             }
         }
 

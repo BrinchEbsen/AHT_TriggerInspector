@@ -9,53 +9,128 @@ using System.Threading.Tasks;
 
 namespace AHT_Triggers.Data
 {
+    /// <summary>
+    /// Information about a local variable, that being its index and what procedure it's used in.
+    /// </summary>
     internal struct LocalVar
     {
         public int index;
         public int proc;
     }
+    /// <summary>
+    /// Result of decoding a gamescript.
+    /// </summary>
     public enum DecodeResult
     {
         Success,
-        NegativeIndent
+        NegativeIndent,
+        InvalidVar,
+        InvalidProc
     }
 
     internal class ByteCodeDecompiler
     {
+        /// <summary>
+        /// The script the decompiler will read data from.
+        /// </summary>
         public GameScript Script { get; set; }
+        /// <summary>
+        /// The saved info about the names of elements.
+        /// </summary>
         public GameScriptSaveInfo SaveInfo { get; set; }
+        /// <summary>
+        /// Whether comments showing commands that could not be deciphered should be included in the decompiled text.
+        /// </summary>
         public bool ShowUnknown { get; set; }
 
-        //Amount of space before the line of code that is deciphered
+        /// <summary>
+        /// Amount of whitespace to be inserted before each line of code that is deciphered.
+        /// </summary>
         private int Indentation = 0;
 
-        //How many spaces are added for each indentation level
+        /// <summary>
+        /// How many spaces are added for each indentation level.
+        /// </summary>
         private static readonly int INDENT_LEVEL = 2;
 
-        //Lists to keep track of information regarding variables during the script decompile
+        /// <summary>
+        /// List of local variables that have been used throughout the script code.
+        /// Used to deduce what procedures local variables should be declared in, as well as whether any are unused.
+        /// The <see cref="LocalVar"></see> object holds the index of the variable and the index of the procedure it's used in.
+        /// </summary>
         private List<LocalVar> TrackedLocals;
-        private List<int>      TrackedGlobals;
+
+        /// <summary>
+        /// List of global variables that have been used throughout the script code.
+        /// Used to deduce what globals are unused.
+        /// Each entry is the index of the variable.
+        /// </summary>
+        private List<int> TrackedGlobals;
+
+        /// <summary>
+        /// Whether variables will be tracked using the <see cref="TrackVar(int)"/> method.
+        /// </summary>
         private bool TrackVars = false;
 
-        //Key is line number, value is name
-        private Dictionary<int, string> ProcHeaders  = new Dictionary<int, string>();
+        /// <summary>
+        /// Dictionary of procedures in the gamescript, where the key is the line number and the value is the name.
+        /// </summary>
+        private Dictionary<int, string> ProcHeaders = new Dictionary<int, string>();
+        /// <summary>
+        /// Dictionary of labels in the gamescript, where the key is the line number and the value is the name.
+        /// </summary>
         private Dictionary<int, string> LabelHeaders = new Dictionary<int, string>();
 
+        /// <summary>
+        /// Holds the index of the current procedure while decompiling. -1 when before the first procedure.
+        /// </summary>
         private int CurrentProc;
 
-        //How the indentation changes before and after a line of code
+        /// <summary>
+        /// Describes how a line of code will change the indentation.
+        /// </summary>
         private enum IndentState
         {
+            /// <summary>
+            /// The indentation will not change.
+            /// </summary>
             None,
+            /// <summary>
+            /// The indentation will increase once after this line.
+            /// </summary>
             IncAfter,
+            /// <summary>
+            /// The indentation will decrease once before this line.
+            /// </summary>
             DecBefore,
+            /// <summary>
+            /// The indentation will decrease once before this line, then increase once after this line.
+            /// </summary>
             DecBeforeIncAfter,
+            /// <summary>
+            /// The indentation will increase twice after this line.
+            /// </summary>
             IncTwiceAfter,
+            /// <summary>
+            /// The indentation will decrease twice before this line.
+            /// </summary>
             DecTwiceBefore
         }
 
-        private IndentState indentState = IndentState.None;
+        /// <summary>
+        /// The result of the current decompilation.
+        /// </summary>
+        private DecodeResult CurrentDecodeResult = DecodeResult.Success;
 
+        /// <summary>
+        /// Holds the current <see cref="IndentState"/> during decompilation.
+        /// </summary>
+        private IndentState CurrentIndentState = IndentState.None;
+
+        /// <summary>
+        /// List of predefined language-level variables.
+        /// These are always present if any variables are used, and are used for things such as return values, messages from other triggers etc.
+        /// </summary>
         private static readonly Dictionary<int, string> LVAR_NAMES = new Dictionary<int, string>
         {
             [5]  = "YESNO",
@@ -63,20 +138,32 @@ namespace AHT_Triggers.Data
             [15] = "RETURN0"
         };
 
+        /// <summary>
+        /// Instantiates the <see cref="ByteCodeDecompiler"/> with the <see cref="GameScript"/> that it will read data from.
+        /// </summary>
+        /// <param name="script">Script that the decompiler will read data from</param>
         public ByteCodeDecompiler(GameScript script)
         {
             this.Script = script;
         }
 
+        /// <summary>
+        /// Construct list of strings for each procedure listed in the script's VTable.
+        /// Each string has the index into the VTable followed by the entry's name (or "(none)" if the reference is empty).
+        /// </summary>
+        /// <returns>List of strings for each entry in the VTable</returns>
         public List<string> GetVTable()
         {
             List<string> list = new List<string>();
 
+            //Iterate through all entries in the VTable
             int i = 0;
             foreach (byte b in Script.VTable)
             {
+                //Show index on the left
                 string index = (i + " - ").PadLeft(5, ' ');
 
+                //Add procedure name if it's a valid reference.
                 if ((b >= 0) && (b < Script.Procedures.Count))
                 {
                     list.Add(index + GetProcName(b));
@@ -91,12 +178,20 @@ namespace AHT_Triggers.Data
             return list;
         }
 
-        //Return the name of the procedure at the given index into the ProcTable.
-        //Adds the index to the end of the name, if another procedure with the same name exists.
+        /// <summary>
+        /// Generates a name for the procedure at the given index into the procedure table.
+        /// The name will be the same as is stored in the script's data,
+        /// except if multiple procedures exist with the same name (due to the 9-character limitation),
+        /// in which case its index will be added at the end to make it distinguishable.
+        /// Returns "INVALID_PROC" if the index is invalid.
+        /// </summary>
+        /// <param name="proc">Index into procedure table</param>
+        /// <returns>Generated procedure name</returns>
         public string GenerateProcName(int proc)
         {
-            if (Script.Procedures.Count == 0)
+            if ((proc < 0) || (proc >= Script.Procedures.Count))
             {
+                CurrentDecodeResult |= DecodeResult.InvalidProc;
                 return "INVALID_PROC";
             }
 
@@ -117,27 +212,50 @@ namespace AHT_Triggers.Data
             return name;
         }
 
+        /// <summary>
+        /// Get the name of the procedure at the given index into the procedure table.
+        /// Will use an automatically generated name if no savedata is defined.
+        /// </summary>
+        /// <param name="proc">Index into procedure table</param>
+        /// <returns>Name of procedure</returns>
         public string GetProcName(int proc)
         {
             if (SaveInfo != null)
             {
-                return SaveInfo.GetProc(proc);
+                try
+                {
+                    return SaveInfo.GetProc(proc);
+                } catch
+                {
+                    CurrentDecodeResult |= DecodeResult.InvalidProc;
+                    return "INVALID_PROC";
+                }
             }
 
             return GenerateProcName(proc);
         }
 
+        /// <summary>
+        /// Auto-generate names for labels in the code. They are formatted as "lbl_[line number]".
+        /// Note that labels are not specified in the code, GOTOs instead simply refer to a line number they jump to.
+        /// </summary>
+        /// <returns>Dictionary of labels - key is line number, value is name</returns>
         public Dictionary<int, string> GenerateLabels()
         {
             Dictionary<int, string> labels = new Dictionary<int, string>();
+            //Name labels after the order of when they're found
             int index = 0;
 
-            for (int i = 0; i < Script.NumLines; i++)
+            //Loop through all code
+            foreach (CodeLine line in Script.Code)
             {
-                if (Script.Code[i].InstructionID == 0x14)
+                //Check for GOTO
+                if (line.InstructionID == 0x14)
                 {
-                    int lineNum = Script.Code[i].Data4;
+                    //Get line number referenced by the GOTO statement
+                    int lineNum = line.Data4;
 
+                    //If we found a new label, give it a name and add it to the list
                     if (!labels.ContainsKey(lineNum))
                     {
                         labels.Add(lineNum, "lbl_" + index.ToString());
@@ -149,12 +267,41 @@ namespace AHT_Triggers.Data
             return labels;
         }
 
-        public string GetLabel(int lineNr)
+        /// <summary>
+        /// Count the amount of labels in the gamescript.
+        /// </summary>
+        /// <returns>Amount of labels in the gamescript</returns>
+        public int CountLabels()
         {
-            return SaveInfo.Labels[lineNr];
+            //Keep track of labels we've found already
+            List<int> found = new List<int>();
+
+            //Loop through all lines of code
+            foreach (CodeLine line in Script.Code)
+            {
+                //Check for GOTO
+                if (line.InstructionID == 0x14)
+                {
+                    //Check for line number in the GOTO statement,
+                    //add to list if it's a new label
+                    if (!found.Contains(line.Data4))
+                    {
+                        found.Add(line.Data4);
+                    }
+                }
+            }
+
+            //Return amount of elements in the list of found labels
+            return found.Count;
         }
 
-        //Create a compare statement between two variables/values with a given operator ID
+        /// <summary>
+        /// Create a compare statement between two variables/values with a given operator ID.
+        /// </summary>
+        /// <param name="val1">Value/variable on the left of the statement</param>
+        /// <param name="val2">Value/variable on the right of the statement</param>
+        /// <param name="oper">ID of the operator</param>
+        /// <returns>String of the final comparison statement</returns>
         private string CreateCompareStatement(string val1, string val2, byte oper)
         {
             string str = "";
@@ -190,7 +337,13 @@ namespace AHT_Triggers.Data
             return str;
         }
 
-        //Create a math statement between two variables/values with a given operator ID
+        /// <summary>
+        /// Create a math statement between two variables/values with a given operator ID.
+        /// </summary>
+        /// <param name="val1">Value/variable on the left of the statement</param>
+        /// <param name="val2">Value/variable on the right of the statement</param>
+        /// <param name="oper">ID of the operator</param>
+        /// <returns>String of the final math statement</returns>
         private string CreateMathStatement(string val1, string val2, byte oper)
         {
             string str = "";
@@ -236,19 +389,28 @@ namespace AHT_Triggers.Data
             return str;
         }
 
-        //Store information about used variables for later
+        /// <summary>
+        /// Add newly used local variables to the <see cref="TrackedLocals"/> list,
+        /// and add newly used globale variables to the <see cref="TrackedGlobals"/> list.
+        /// Used during decompilation to keep track of if and where variables are used.
+        /// </summary>
+        /// <param name="i">Index of variable</param>
         private void TrackVar(int i)
         {
+            //Check if we're dealing with a local or global
             if (i < Script.NumGlobals)
             {
-                if (i > 23) //There are 24 language-defined globals that are always present
+                //Only add globals that are not language-level variables (first 24 globals)
+                if (i > 23)
                 {
+                    //Add to list if it isn't tracked already
                     if (TrackedGlobals.Contains(i)) { return; }
                     TrackedGlobals.Add(i);
                 }
             }
             else
             {
+                //Check if this local is tracked already
                 foreach (LocalVar v in TrackedLocals)
                 {
                     if (v.index == i)
@@ -257,6 +419,7 @@ namespace AHT_Triggers.Data
                     }
                 }
 
+                //Add to list
                 TrackedLocals.Add(
                     new LocalVar
                     {
@@ -268,12 +431,22 @@ namespace AHT_Triggers.Data
         }
 
         /// <summary>
-        /// Create a name for a variable at the given index
+        /// Create a name for a variable at the given index.
+        /// Local variables are formatted as "loc[index]",
+        /// global variables are formatted as "glo[index]",
+        /// language variables either use their pre-defined names or a generated name with format "LVAR[index]"
+        /// Returns "INVALID_VAR" if outside the index range.
         /// </summary>
         /// <param name="i">Variable index</param>
-        /// <returns>Name</returns>
+        /// <returns>Generated name</returns>
         public string GenerateVarName(int i)
         {
+            if ((i >= Script.NumVars) || (i < 0))
+            {
+                CurrentDecodeResult |= DecodeResult.InvalidVar;
+                return "INVALID_VAR";
+            }
+
             if (i >= Script.NumGlobals)
             {
                 //Local variable
@@ -284,6 +457,8 @@ namespace AHT_Triggers.Data
                 return "glo" + (i - 24);
             } else
             {
+                //Language variable
+                //Check if there's a pre-defined name for it, else generate one
                 if (LVAR_NAMES.ContainsKey(i))
                 {
                     return LVAR_NAMES[i];
@@ -292,13 +467,26 @@ namespace AHT_Triggers.Data
             }
         }
 
+        /// <summary>
+        /// Get the name of the variable at the given index.
+        /// Will use an automatically generated name if no savedata is defined.
+        /// </summary>
+        /// <param name="i">Variable index</param>
+        /// <returns>Name of variable</returns>
         private string GetVarName(int i)
         {
             if (TrackVars) { TrackVar(i); }
 
             if (SaveInfo != null)
             {
-                return SaveInfo.GetVar(i);
+                try
+                {
+                    return SaveInfo.GetVar(i);
+                } catch
+                {
+                    CurrentDecodeResult |= DecodeResult.InvalidVar;
+                    return "INVALID_VAR";
+                }
             }
 
             return GenerateVarName(i);
@@ -308,7 +496,7 @@ namespace AHT_Triggers.Data
         /// Turn a value into a string representation, or a hashcode if one exists for it.
         /// </summary>
         /// <param name="value">The value to convert</param>
-        /// <returns>String representation of the value, or the hashcode if one exists for it.</returns>
+        /// <returns>String representation of the value, or the hashcode label if one exists for it</returns>
         private string ValToString(int value)
         {
             if (Enum.IsDefined(typeof(EXHashCode), (uint)value) && (value != 0))
@@ -323,8 +511,15 @@ namespace AHT_Triggers.Data
             }
         }
 
+        /// <summary>
+        /// Add whitespace before the given string <paramref name="s"/>
+        /// according to the current <see cref="Indentation"/> and <see cref="INDENT_LEVEL"/>.
+        /// </summary>
+        /// <param name="s">Command to indent</param>
+        /// <returns>Indented command</returns>
         private string AddIndentToCommand(string s)
         {
+            //Don't add indentation if negative
             if (Indentation < 0)
             {
                 return s;
@@ -335,15 +530,17 @@ namespace AHT_Triggers.Data
         }
 
         /// <summary>
-        /// Add the indentation to a code line, and increase/decrease accordingly
+        /// Add the indentation to a code line <paramref name="instr"/>, and increase/decrease <see cref="Indentation"/> accordingly
         /// </summary>
         /// <param name="instr">String representing the line of code</param>
+        /// <param name="becameNegative">Set to true if indentation became negative during the process</param>
         /// <returns>Indented line of code</returns>
         private string AddIndent(string instr, out bool becameNegative)
         {
             string str;
 
-            switch (indentState)
+            //Increase/decrease indentation according to the state
+            switch (CurrentIndentState)
             {
                 case IndentState.None:
                     str = AddIndentToCommand(instr);
@@ -370,10 +567,12 @@ namespace AHT_Triggers.Data
                     str = AddIndentToCommand(instr);
                     break;
                 default:
+                    //In theory this can't happen
                     str = "INVALID INDENTATION";
                     break;
             }
 
+            //Report if indentation became negative
             if (Indentation < 0)
             {
                 Indentation = 0;
@@ -383,24 +582,27 @@ namespace AHT_Triggers.Data
                 becameNegative = false;
             }
 
-            indentState = IndentState.None;
+            //Reset state
+            CurrentIndentState = IndentState.None;
 
             return str;
         }
 
-        //Take the whole gamescript and turn it into a string representing the interpreted source code
-
         /// <summary>
-        /// Decompile the gamescript.
+        /// Decompile the gamescript and put it in a string.
+        /// Decompilation includes deciphering each command to a text representation,
+        /// adding intendation for readability, adding variable declaration etc...
         /// </summary>
-        /// <returns>Decompiled gamescript contained in a string.</returns>
+        /// <param name="res">Contains the <see cref="DecodeResult"/> of the decompilation</param>
+        /// <returns>Decompiled gamescript contained in a string</returns>
         public string DecompileScript(out DecodeResult res)
         {
-            //Default result
-            res = DecodeResult.Success;
+            CurrentDecodeResult = DecodeResult.Success;
 
-            //Start lists of procedures and labels
+            //Start lists of procedures
             ProcHeaders.Clear();
+
+            //Obtain list of labels to add in second pass of decompilation
             LabelHeaders = GenerateLabels();
 
             //Reset indentation
@@ -414,11 +616,18 @@ namespace AHT_Triggers.Data
             TrackedGlobals = new List<int>();
             TrackedLocals = new List<LocalVar>();
 
-            //Create list of strings
+            //Create list of strings in our decompiled output
             List<string> codeStr = new List<string>();
 
-            //First pass:
-            //Add a string to the list for each line, keep note of labels and procedures as we encounter them
+            //With everything set up, let's start decompiling:
+
+            /* 
+             * -- FIRST PASS --
+             * Add individual deciphered commands and track the usages of
+             * variables and the info about procedures.
+             */
+            
+            //Loop through all lines of code
             for (int i = 0; i < Script.NumLines; i++)
             {
                 //Check for start of procedure
@@ -426,18 +635,24 @@ namespace AHT_Triggers.Data
                 {
                     Procedure p = Script.Procedures[j];
 
+                    //If start line of procedure matches current line, add to the list
                     if (p.StartLine == i)
                     {
                         string s = GetProcName(j);
+
+                        //If exclusive, mark as such
                         if (p.Exclusive)
                         {
                             s += " exclusive";
                         }
 
-                        //Add indentation after start of procedure
+                        //Set indentation to one after declaration
                         Indentation = 1;
+
+                        //Add to list to refer to later
                         ProcHeaders.Add(i, s);
 
+                        //Set current procedure to this one
                         CurrentProc = j;
 
                         break;
@@ -459,28 +674,35 @@ namespace AHT_Triggers.Data
                 //Report a negative indentation if it occours
                 if (becameNegative)
                 {
-                    res = DecodeResult.NegativeIndent;
+                    CurrentDecodeResult |= DecodeResult.NegativeIndent;
                 }
 
                 //Finally, add it to the list of strings
                 codeStr.Add(str);
             }
 
+            //We're not tracking the use of variables anymore
             TrackVars = false;
 
-            //Second pass:
-            //Add procedure headers, labels, variable declarations and relocate "AND" statements
-            //Keep track of how far we've drifted using a variable, so we don't add a line to the wrong place
+            /* 
+             * -- SECOND PASS --
+             * Add procedure declarations, labels, variable declarations, relocate "AND" statements among other things.
+             */
+
+            //Keep track of how far we've drifted using a variable, so we don't add a line to the wrong place.
+            //This variable is incremented every time a line is inserted that doesn't directly correlate with a code line in the data.
+            //(and decremented when we remove a line)
             int offs = 0;
 
-            //Add list of global declarations at the top
+            //Add list of global declarations at the top (declared with INT)
             if (Script.NumGlobals > 0)
             {
+                //Start at 24 to only declare variables after language-level vars
                 for (int i = 24; i < Script.NumGlobals; i++)
                 {
                     string str = "INT " + GetVarName(i);
 
-                    //If we never encountered the global, then we mark it as unused.
+                    //If we never encountered the global during first pass, then we mark it as unused.
                     if (!TrackedGlobals.Contains(i))
                     {
                         str += " //Unused global";
@@ -491,7 +713,7 @@ namespace AHT_Triggers.Data
                 }
             }
 
-            //Add info about unused locals, if any exist
+            //Add info about unused locals, if any exist, by checking if the tracked amount is less than the actual amount
             int numLocals = Script.NumVars - Script.NumGlobals;
             if (numLocals > TrackedLocals.Count)
             {
@@ -521,11 +743,15 @@ namespace AHT_Triggers.Data
                         offs++;
                     }
                 }
+
+                codeStr.Insert(offs, "");
+                offs++;
             }
 
-            //Keep track of which procedures we've added
+            //Keep track of which procedures we've added declarations for
             CurrentProc = -1;
 
+            //Loop through all lines of code again
             for (int i = 0; i < Script.NumLines; i++)
             {
                 //Check if a list contains a value at a given line of code (+ the drift), and insert the name if so.
@@ -534,28 +760,39 @@ namespace AHT_Triggers.Data
                 {
                     CurrentProc++;
 
-                    codeStr.Insert(i + offs, "");
-                    offs++;
+                    //Add empty line before procedure declaration if one doesn't exist already
+                    if ((i+offs) > 0)
+                    {
+                        //Check if previous line is empty
+                        if (codeStr[i+offs-1] != "")
+                        {
+                            codeStr.Insert(i + offs, "");
+                            offs++;
+                        }
+                    }
+
+                    //Add declaration
                     codeStr.Insert(i + offs, "DEFPROC " + ProcHeaders[i]);
                     offs++;
 
-                    //Add locals for the current procedure at the top
+                    //Add local declarations for the current procedure at the top
                     if (TrackedLocals.Count > 0)
                     {
-                        //We only add an empty line if we actually put any locals there
+                        //We only add an empty line afterwards if we actually put any locals there
                         bool addNewLine = false;
 
-                        for (int j = 0;  j < TrackedLocals.Count; j++)
+                        //Loop through tracked locals and add declaration if it's part of this procedure
+                        foreach (LocalVar v in TrackedLocals)
                         {
-                            //Only add locals part of the current procedure
-                            if (TrackedLocals[j].proc == CurrentProc)
+                            if (v.proc == CurrentProc)
                             {
-                                codeStr.Insert(i + offs, new string(' ', INDENT_LEVEL) + "INT " + GetVarName(TrackedLocals[j].index));
+                                codeStr.Insert(i + offs, new string(' ', INDENT_LEVEL) + "INT " + GetVarName(v.index));
                                 offs++;
 
                                 addNewLine = true;
                             }
                         }
+
                         if (addNewLine)
                         {
                             codeStr.Insert(i + offs, "");
@@ -565,6 +802,7 @@ namespace AHT_Triggers.Data
                 }
 
                 //If the line number has an associated label, add it
+                //If save data is defined, grab the name from that, otherwise just grab a generated name
                 string lblName = null;
                 if (SaveInfo != null)
                 {
@@ -595,8 +833,12 @@ namespace AHT_Triggers.Data
                 }
             }
 
-            //Third pass:
-            //Fill in all lines with a label tag (formatted as "#L[line number]") with the label name instead
+            /* 
+             * -- THIRD PASS --
+             * Right now any reference to a label just refers to its line number with the tag: "#L[line number]".
+             * In this pass we replace these tags with the name of the label.
+             */
+
             for (int i = 0; i < codeStr.Count; i++)
             {
                 string s;
@@ -609,8 +851,27 @@ namespace AHT_Triggers.Data
                 s = codeStr[i].Remove(0, n + 2);
 
                 //Check if anything after the number exists, remove if there is
-                n = s.IndexOf(' ');
-                if (n >= 0) {
+
+                //Get the index of the nearest space or line break
+                int iNextSpace = s.IndexOf(' ');
+                int iNextLineBr = s.IndexOf("\n");
+
+                if (iNextLineBr < 0)
+                {
+                    n = iNextSpace;
+                }
+                else if (iNextSpace < 0)
+                {
+                    n = iNextLineBr;
+                }
+                else
+                {
+                    n = Math.Min(iNextSpace, iNextLineBr);
+                }
+
+                //If any exists, remove from here
+                if (n >= 0)
+                {
                     s = s.Remove(n);
                 }
 
@@ -625,9 +886,17 @@ namespace AHT_Triggers.Data
                     continue;
                 }
 
+                //Get the name of the label. If no save info is present, just use the auto-generated ones.
                 string lblName;
                 if (SaveInfo != null)
                 {
+                    //Check if a label exists at this line number
+                    if (!SaveInfo.Labels.ContainsKey(lineNum))
+                    {
+                        Console.WriteLine("Line number does not correspond to any label: " + lineNum);
+                        continue;
+                    }
+
                     lblName = SaveInfo.Labels[lineNum];
                 } else
                 {
@@ -652,6 +921,7 @@ namespace AHT_Triggers.Data
                 sb.AppendLine(s);
             }
 
+            res = CurrentDecodeResult;
             return sb.ToString();
         }
 
@@ -663,18 +933,24 @@ namespace AHT_Triggers.Data
         {
             StringBuilder sb = new StringBuilder();
 
+            //Get how wide the line number column needs to be
+            int lineNrCol = (Script.NumLines - 1).ToString().Length + 1;
+
             for (int i = 0; i < Script.NumLines; i++)
             {
                 CodeLine line = Script.Code[i];
 
+                //Add a little label when a procedure starts on the next line
                 foreach (Procedure proc in Script.Procedures)
                 {
                     if (proc.StartLine == i)
                         sb.AppendLine("  DEFPROC " + proc.Name);
                 }
 
+                //This is a mess but it's just padding the strings to make it look nice
+                //  [line number] | instr: [instruction ID] | data: [[data1]] [[data2]] [[data3]] [[data4]] | [decompiled command]
                 string str =
-                    i.ToString().PadRight(4, ' ') +
+                    i.ToString().PadRight(lineNrCol, ' ') +
                     string.Format("| instr: 0x{0:X}", line.InstructionID).PadRight(14, ' ') + "| data: [0x" +
                     string.Format("{0:X}",            line.Data1).PadLeft(2, '0')           + "] [0x" +
                     string.Format("{0:X}",            line.Data2).PadLeft(2, '0')           + "] [0x" +
@@ -689,22 +965,25 @@ namespace AHT_Triggers.Data
         }
 
         /// <summary>
-        /// Turn an instruction into a string representation of the line of code
+        /// Turn an instruction into a string representation of the line of code.
         /// </summary>
         /// <param name="line">Line of code to decipher</param>
+        /// <param name="lineNr">Line number</param>
         /// <returns>Deciphered line of code</returns>
         public string DecipherCommand(CodeLine line, int lineNr)
         {
-            indentState = IndentState.None;
+            //Reset indent state
+            CurrentIndentState = IndentState.None;
 
             string str;
             string val;
 
+            //Format string depending on the instruction ID of the line
             switch(line.InstructionID)
             {
                 //GENERIC
                 case 0x2: // IF <var1> <operator> <var2>
-                    indentState = IndentState.IncAfter;
+                    CurrentIndentState = IndentState.IncAfter;
                     str = "IF " + CreateCompareStatement(
                             GetVarName(line.Data2),
                             GetVarName(line.Data4),
@@ -713,7 +992,7 @@ namespace AHT_Triggers.Data
 
                     break;
                 case 0x3: // IF <var> <operator> <value>
-                    indentState = IndentState.IncAfter;
+                    CurrentIndentState = IndentState.IncAfter;
                     str = "IF " + CreateCompareStatement(
                             GetVarName(line.Data2),
                             ValToString(line.Data4),
@@ -722,7 +1001,7 @@ namespace AHT_Triggers.Data
 
                     break;
                 case 0x4: // AND <var1> <operator> <var2>
-                    indentState = IndentState.DecBeforeIncAfter;
+                    CurrentIndentState = IndentState.DecBeforeIncAfter;
                     str = " AND " + CreateCompareStatement(
                             GetVarName(line.Data2),
                             GetVarName(line.Data4),
@@ -731,7 +1010,7 @@ namespace AHT_Triggers.Data
 
                     break;
                 case 0x5: // AND <var> <operator> <value>
-                    indentState = IndentState.DecBeforeIncAfter;
+                    CurrentIndentState = IndentState.DecBeforeIncAfter;
                     str = " AND " + CreateCompareStatement(
                             GetVarName(line.Data2),
                             ValToString(line.Data4),
@@ -740,12 +1019,12 @@ namespace AHT_Triggers.Data
 
                     break;
                 case 0x6: // ELSE
-                    indentState = IndentState.DecBeforeIncAfter;
+                    CurrentIndentState = IndentState.DecBeforeIncAfter;
                     str = "ELSE";
 
                     break;
                 case 0x7: // ELSEIF <var1> <operator> <var2>
-                    indentState = IndentState.DecBeforeIncAfter;
+                    CurrentIndentState = IndentState.DecBeforeIncAfter;
                     str = "ELSEIF " + CreateCompareStatement(
                             GetVarName(line.Data2),
                             GetVarName(line.Data4),
@@ -754,7 +1033,7 @@ namespace AHT_Triggers.Data
 
                     break;
                 case 0x8: // ELSEIF <var> <operator> <value>
-                    indentState = IndentState.DecBeforeIncAfter;
+                    CurrentIndentState = IndentState.DecBeforeIncAfter;
                     str = "ELSEIF " + CreateCompareStatement(
                             GetVarName(line.Data2),
                             ValToString(line.Data4),
@@ -763,7 +1042,7 @@ namespace AHT_Triggers.Data
 
                     break;
                 case 0x9: // ENDIF
-                    indentState = IndentState.DecBefore;
+                    CurrentIndentState = IndentState.DecBefore;
                     str = "ENDIF";
 
                     break;
@@ -776,12 +1055,12 @@ namespace AHT_Triggers.Data
                         val = ValToString(line.Data4);
                     }
 
-                    indentState = IndentState.IncAfter;
+                    CurrentIndentState = IndentState.IncAfter;
                     str = "REPEAT " + val;
 
                     break;
                 case 0xc: // ENDREPEAT
-                    indentState = IndentState.DecBefore;
+                    CurrentIndentState = IndentState.DecBefore;
                     str = "ENDREPEAT";
 
                     break;
@@ -865,31 +1144,31 @@ namespace AHT_Triggers.Data
 
                     break;
                 case 0x1a: // WHILE <var> <operator> <value>
-                    indentState = IndentState.IncAfter;
+                    CurrentIndentState = IndentState.IncAfter;
                     str = "WHILE " + CreateCompareStatement(GetVarName(line.Data2), ValToString(line.Data4), line.Data3);
 
                     break;
                 case 0x1b: // ENDWHILE
-                    indentState = IndentState.DecBefore;
+                    CurrentIndentState = IndentState.DecBefore;
                     str = "ENDWHILE";
 
                     break;
                 case 0x1e: // ENDPROC <optional var/value>
-                    indentState = IndentState.None;
+                    CurrentIndentState = IndentState.None;
 
                     //Change indentation if another procedure starts right after
                     foreach (Procedure proc in Script.Procedures)
                     {
                         if (proc.StartLine == lineNr+1)
                         {
-                            indentState = IndentState.DecBefore;
+                            CurrentIndentState = IndentState.DecBefore;
                             break;
                         }
                     }
                     //Change indentation if its the last command of the gamescript
                     if (lineNr == Script.NumLines-1)
                     {
-                        indentState = IndentState.DecBefore;
+                        CurrentIndentState = IndentState.DecBefore;
                     }
 
                     if (line.Data1 == 0)
@@ -917,17 +1196,17 @@ namespace AHT_Triggers.Data
 
                     break;
                 case 0x24: // CASE <value/hash>
-                    indentState = IndentState.DecBeforeIncAfter;
+                    CurrentIndentState = IndentState.DecBeforeIncAfter;
                     str = "CASE "+ValToString(line.Data4);
 
                     break;
                 case 0x25: // SWITCH <var>
-                    indentState = IndentState.IncTwiceAfter;
+                    CurrentIndentState = IndentState.IncTwiceAfter;
                     str = "SWITCH "+GetVarName(line.Data2);
 
                     break;
                 case 0x27: // ENDSWITCH
-                    indentState = IndentState.DecTwiceBefore;
+                    CurrentIndentState = IndentState.DecTwiceBefore;
                     str = "ENDSWITCH";
 
                     break;

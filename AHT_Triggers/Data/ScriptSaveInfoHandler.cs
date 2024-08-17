@@ -194,7 +194,27 @@ namespace AHT_Triggers.Data
 
                         line = reader.ReadLine();
                     }
-                    //Don't catch IOException because it should be handled elsewhere (to display errors and such)
+
+                    //Verify that the amount of elements found is correct
+                    int numVars = trigger.Script.NumVars;
+                    int numProcs = trigger.Script.NumProcs;
+                    int numLabels = new ByteCodeDecompiler(trigger.Script).CountLabels();
+
+                    //This should match - throw an IOException if not.
+                    if (numVars != Info.NumVars())
+                    {
+                        throw new IOException("The number of variables defined in the save file "+txtpath+" does not match that of the gamescript.");
+                    }
+                    if (numProcs != Info.NumProcs())
+                    {
+                        throw new IOException("The number of procedures defined in the save file "+txtpath+" does not match that of the gamescript.");
+                    }
+                    if (numLabels != Info.NumLabels())
+                    {
+                        throw new IOException("The number of labels defined in the save file "+txtpath+" does not match that of the gamescript.");
+                    }
+
+                //Don't catch IOException because it should be handled elsewhere (to display errors and such)
                 } catch (Exception ex) when (ex is FormatException | ex is ArgumentOutOfRangeException)
                 {
                     //If a formatting error occours, report it via IOException.

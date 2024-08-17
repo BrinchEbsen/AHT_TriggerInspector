@@ -8,6 +8,13 @@ namespace AHT_Triggers.Data
 {
     public class Syntax
     {
+        public static readonly string[] SYNTAX_ERRORFIELDS =
+        {
+            "INVALID_VAR",
+            "INVALID_PROC",
+            "INVALID_LABEL"
+        };
+
         public static readonly string[] SYNTAX_KEYWORDS =
         {
             "+",

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Windows.Forms;
 
 namespace AHT_Triggers
@@ -25,6 +26,7 @@ namespace AHT_Triggers
         private static readonly Color COLOR_KEYWORD  = Color.FromArgb(38, 139, 210);
         private static readonly Color COLOR_HASHCODE = Color.FromArgb(255, 0, 255);
         private static readonly Color COLOR_COMMENT  = Color.FromArgb(0x85, 0x99, 0);
+        private static readonly Color COLOR_ERROR    = Color.Red;
 
         //Constructor needs all the info to know what file to load
         public ScriptViewer(Trigger trigger, int selectedMap, string viewingFile, bool doHighLight)
@@ -65,16 +67,39 @@ namespace AHT_Triggers
             InsertDecompiledCode();
         }
 
+        private void CreateDecompErrorPopup(DecodeResult res)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("There were errors during decompilation:");
+            sb.AppendLine();
+
+            if ((res & DecodeResult.NegativeIndent) != 0)
+            {
+                sb.AppendLine(" - Negative indentation encountered.");
+            }
+            if ((res & DecodeResult.InvalidVar) != 0)
+            {
+                sb.AppendLine(" - Invalid variables referenced.");
+            }
+            if ((res & DecodeResult.InvalidProc) != 0)
+            {
+                sb.AppendLine(" - Invalid procedures referenced.");
+            }
+
+            sb.AppendLine();
+            sb.AppendLine("There's either a bug in the decompiler or the gamescript's data is corrupted.");
+
+            MessageBox.Show(sb.ToString(), "Decompiler Errors", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
         public void InsertDecompiledCode()
         {
             Txt_ScriptCode.Text = decomp.DecompileScript(out DecodeResult res);
 
-            if (res == DecodeResult.NegativeIndent)
+            //If any errors occoured, report it in a pop-up
+            if (res != DecodeResult.Success)
             {
-                MessageBox.Show("The decompiler enountered negative indentation," +
-                    " which either means there's a bug in the decompiler, or the gamescript's data is corrupted.",
-                    "Decompiler Warning",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                CreateDecompErrorPopup(res);
             }
 
             Txt_ByteCode.Text = decomp.BytecodeToString();
@@ -128,6 +153,20 @@ namespace AHT_Triggers
                     Txt_ScriptCode.SelectionLength = s.Length;
                     Txt_ScriptCode.SelectionColor = COLOR_KEYWORD;
                      
+                    p += 1;
+                }
+            }
+
+            //Color error fields
+            foreach (string s in Syntax.SYNTAX_ERRORFIELDS)
+            {
+                p = 0;
+                while ((p = Txt_ScriptCode.Find(s, p, RichTextBoxFinds.MatchCase)) >= 0)
+                {
+                    Txt_ScriptCode.SelectionStart = p;
+                    Txt_ScriptCode.SelectionLength = s.Length;
+                    Txt_ScriptCode.SelectionColor = COLOR_ERROR;
+
                     p += 1;
                 }
             }
