@@ -17,34 +17,72 @@ namespace AHT_Triggers.Data
         public int index;
         public int proc;
     }
+
     /// <summary>
     /// Result of decoding a gamescript.
     /// </summary>
     public enum DecodeResult
     {
+        /// <summary>
+        /// No errors occoured during decompilation.
+        /// </summary>
         Success,
+        /// <summary>
+        /// The indentation went negative.
+        /// </summary>
         NegativeIndent,
+        /// <summary>
+        /// An attempt was made to index a variable out of bounds.
+        /// </summary>
         InvalidVar,
+        /// <summary>
+        /// An attempt was made to index a procedure out of bounds.
+        /// </summary>
         InvalidProc
     }
 
+    /// <summary>
+    /// <para>
+    /// Contains methods for analyzing and decompiling a <see cref="GameScript"/>.
+    /// </para>
+    /// <para>
+    /// GameScripts are written in a BASIC-like language with simple syntax and rules.
+    /// When compiled, the source GameScripts are turned into <i>bytecode</i>, which is the raw data of each line for
+    /// the interpreter to process.
+    /// Note that the compilation of GameScripts is <i>lossy</i>, so a lot of information is lost from the original source file.
+    /// </para>
+    /// <para>
+    /// The <see cref="DecompileScript(out DecodeResult)"/> method will analyze the given
+    /// gamescript and return its best estimate of how the original source file of the GameScript would've looked like.
+    /// </para>
+    /// <para>
+    /// Alternatively, the <see cref="BytecodeToString"/> method simply lists all the raw bytecode data in a list,
+    /// along with what each line means.
+    /// </para>
+    /// <para>
+    /// When supplied with a <see cref="GameScriptSaveInfo"/> object, the decompiler can replace the auto-generated names for
+    /// variables, procedures and labels with user-defined ones.
+    /// </para>
+    /// </summary>
     internal class ByteCodeDecompiler
     {
         /// <summary>
         /// The script the decompiler will read data from.
         /// </summary>
         public GameScript Script { get; set; }
+
         /// <summary>
         /// The saved info about the names of elements.
         /// </summary>
         public GameScriptSaveInfo SaveInfo { get; set; }
+
         /// <summary>
         /// Whether comments showing commands that could not be deciphered should be included in the decompiled text.
         /// </summary>
         public bool ShowUnknown { get; set; }
 
         /// <summary>
-        /// Amount of whitespace to be inserted before each line of code that is deciphered.
+        /// Amount of whitespace to be inserted before the line of code that is to be deciphered.
         /// </summary>
         private int Indentation = 0;
 
@@ -52,39 +90,6 @@ namespace AHT_Triggers.Data
         /// How many spaces are added for each indentation level.
         /// </summary>
         private static readonly int INDENT_LEVEL = 2;
-
-        /// <summary>
-        /// List of local variables that have been used throughout the script code.
-        /// Used to deduce what procedures local variables should be declared in, as well as whether any are unused.
-        /// The <see cref="LocalVar"></see> object holds the index of the variable and the index of the procedure it's used in.
-        /// </summary>
-        private List<LocalVar> TrackedLocals;
-
-        /// <summary>
-        /// List of global variables that have been used throughout the script code.
-        /// Used to deduce what globals are unused.
-        /// Each entry is the index of the variable.
-        /// </summary>
-        private List<int> TrackedGlobals;
-
-        /// <summary>
-        /// Whether variables will be tracked using the <see cref="TrackVar(int)"/> method.
-        /// </summary>
-        private bool TrackVars = false;
-
-        /// <summary>
-        /// Dictionary of procedures in the gamescript, where the key is the line number and the value is the name.
-        /// </summary>
-        private Dictionary<int, string> ProcHeaders = new Dictionary<int, string>();
-        /// <summary>
-        /// Dictionary of labels in the gamescript, where the key is the line number and the value is the name.
-        /// </summary>
-        private Dictionary<int, string> LabelHeaders = new Dictionary<int, string>();
-
-        /// <summary>
-        /// Holds the index of the current procedure while decompiling. -1 when before the first procedure.
-        /// </summary>
-        private int CurrentProc;
 
         /// <summary>
         /// Describes how a line of code will change the indentation.
@@ -118,14 +123,48 @@ namespace AHT_Triggers.Data
         }
 
         /// <summary>
-        /// The result of the current decompilation.
-        /// </summary>
-        private DecodeResult CurrentDecodeResult = DecodeResult.Success;
-
-        /// <summary>
         /// Holds the current <see cref="IndentState"/> during decompilation.
         /// </summary>
         private IndentState CurrentIndentState = IndentState.None;
+
+        /// <summary>
+        /// List of local variables that have been used throughout the script code.
+        /// Used to deduce what procedures local variables should be declared in, as well as whether any are unused.
+        /// The <see cref="LocalVar"></see> object holds the index of the variable and the index of the procedure it's used in.
+        /// </summary>
+        private List<LocalVar> TrackedLocals;
+
+        /// <summary>
+        /// List of global variables that have been used throughout the script code.
+        /// Used to deduce what globals are unused.
+        /// Each entry is the index of the variable.
+        /// </summary>
+        private List<int> TrackedGlobals;
+
+        /// <summary>
+        /// Whether variables will be tracked using the <see cref="TrackVar(int)"/> method.
+        /// </summary>
+        private bool TrackVars = false;
+
+        /// <summary>
+        /// Dictionary of procedures in the gamescript, where the key is the line number and the value is the name.
+        /// </summary>
+        private Dictionary<int, string> ProcHeaders = new Dictionary<int, string>();
+
+        /// <summary>
+        /// Dictionary of labels in the gamescript, where the key is the line number and the value is the name.
+        /// </summary>
+        private Dictionary<int, string> LabelHeaders = new Dictionary<int, string>();
+
+        /// <summary>
+        /// Holds the index of the current procedure while decompiling. -1 when before the first procedure.
+        /// </summary>
+        private int CurrentProc;
+
+        /// <summary>
+        /// The result of the current decompilation.
+        /// </summary>
+        private DecodeResult CurrentDecodeResult = DecodeResult.Success;
 
         /// <summary>
         /// List of predefined language-level variables.
@@ -145,6 +184,18 @@ namespace AHT_Triggers.Data
         public ByteCodeDecompiler(GameScript script)
         {
             this.Script = script;
+        }
+        
+        /// <summary>
+        /// Instantiates the <see cref="ByteCodeDecompiler"/> with the <see cref="GameScript"/> that it will read data from,
+        /// and the <see cref="GameScriptSaveInfo"/> object it will fetch user-defined names from.
+        /// </summary>
+        /// <param name="script">Script that the decompiler will read data from</param>
+        /// <param name="info">Saved info for user-defined names</param>
+        public ByteCodeDecompiler(GameScript script, GameScriptSaveInfo info)
+        {
+            this.Script = script;
+            this.SaveInfo = info;
         }
 
         /// <summary>
