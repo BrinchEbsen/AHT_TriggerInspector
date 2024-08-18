@@ -347,6 +347,9 @@ namespace AHT_Triggers
             } else if (scriptViewer.IsDisposed)
             {
                 OpenScriptViewer();
+            } else
+            {
+                scriptViewer.Focus();
             }
         }
 

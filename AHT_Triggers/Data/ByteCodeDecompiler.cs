@@ -1,11 +1,7 @@
 ﻿using AHT_Triggers.Common;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Tracing;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace AHT_Triggers.Data
 {
@@ -64,7 +60,7 @@ namespace AHT_Triggers.Data
     /// variables, procedures and labels with user-defined ones.
     /// </para>
     /// </summary>
-    internal class ByteCodeDecompiler
+    public class ByteCodeDecompiler
     {
         /// <summary>
         /// The script the decompiler will read data from.
@@ -1511,7 +1507,7 @@ namespace AHT_Triggers.Data
                     str = GetVarName(line.Data3) + " = GETDISTANCETOPATHNODE " + GetVarName(line.Data1);
 
                     break;
-                case 0x50: // <var1> = GETDISTANCETOPATHNODE <value>
+                case 0x50: // <var> = GETDISTANCETOPATHNODE <value>
                     str = GetVarName(line.Data3) + " = GETDISTANCETOPATHNODE " + ValToString(line.Data1);
 
                     break;
@@ -1535,7 +1531,7 @@ namespace AHT_Triggers.Data
                     str = "TALKINDICATOR " + ValToString(line.Data4);
 
                     break;
-                case 0x56: // CUTSEQUENCE <value/hash>
+                case 0x56: // CUTSEQUENCE <var/hash>
                     if ((line.Data4 & 0xFF000000) != 0)
                     {
                         val = ValToString(line.Data4);
@@ -1555,8 +1551,8 @@ namespace AHT_Triggers.Data
                     str = "CAMERARESTORE";
 
                     break;
-                case 0x59: // CAMERAMOVESCRIPTPATH <hash>
-                    str = "CAMERAMOVESCRIPTPATH " + ValToString(line.Data4);
+                case 0x59: // CAMERAMODESCRIPTPATH <hash>
+                    str = "CAMERAMODESCRIPTPATH " + ValToString(line.Data4);
 
                     break;
                 case 0x5a: // LOCKCONTROLS <value>
@@ -1591,8 +1587,8 @@ namespace AHT_Triggers.Data
                     str = "REACT " + ValToString(line.Data4);
 
                     break;
-                case 0x63: // SENDVALUE <ref> <value>
-                    str = "SENDVALUE " + ValToString(line.Data4) + " " + ValToString(line.Data1);
+                case 0x63: // SENDMESSAGE <ref> <value>
+                    str = "SENDMESSAGE " + ValToString(line.Data4) + " " + ValToString(line.Data1);
 
                     break;
                 case 0x64: // SENDTOALL <value>
@@ -1659,7 +1655,7 @@ namespace AHT_Triggers.Data
                     str = "SETBLENDDEPTH " + ValToString(line.Data4);
 
                     break;
-                case 0x72: // HEROTOPATH <value/hash?>
+                case 0x72: // HEROTOPATH <hash>
                     str = "HEROTOPATH " + ValToString(line.Data4);
 
                     break;
@@ -1671,7 +1667,7 @@ namespace AHT_Triggers.Data
                     str = "DISABLEENTITY " + ValToString(line.Data4);
 
                     break;
-                case 0x75: // CHANGEHERO <value/hash?>
+                case 0x75: // CHANGEHERO <value>
                     str = "CHANGEHERO " + ValToString(line.Data4);
 
                     break;
@@ -1731,7 +1727,7 @@ namespace AHT_Triggers.Data
                     str = "VISUALLYGIVELIGHTGEM";
 
                     break;
-                case 0x84: // ZOOPOO <hash>
+                case 0x84: // ZOOPOO <value/hash>
                     str = "ZOOPOO " + ValToString(line.Data4);
 
                     break;
@@ -1815,7 +1811,7 @@ namespace AHT_Triggers.Data
                     str = "MAPFADEPAUSE " + ValToString(line.Data4);
 
                     break;
-                case 0x99: // LOADCUTSEQUENCEFILES <value/hash>
+                case 0x99: // LOADCUTSEQUENCEFILES <var/hash>
                     if ((line.Data4 & 0xFF000000) != 0)
                     {
                         val = ValToString(line.Data4);
@@ -1828,7 +1824,7 @@ namespace AHT_Triggers.Data
                     str = "LOADCUTSEQUENCEFILES " + val;
 
                     break;
-                case 0x9a: // UNLOADCUTSEQUENCEFILES <value/hash>
+                case 0x9a: // UNLOADCUTSEQUENCEFILES <var/hash>
                     if ((line.Data4 & 0xFF000000) != 0)
                     {
                         val = ValToString(line.Data4);
@@ -1841,7 +1837,7 @@ namespace AHT_Triggers.Data
                     str = "UNLOADCUTSEQUENCEFILES " + val;
 
                     break;
-                case 0x9b: // <var> = ARECUTSEQUENCEFILESLOADED <value/hash>
+                case 0x9b: // <var1> = ARECUTSEQUENCEFILESLOADED <var2/hash>
                     if ((line.Data4 & 0xFF000000) != 0)
                     {
                         val = ValToString(line.Data4);
@@ -1878,12 +1874,12 @@ namespace AHT_Triggers.Data
                     str = "SETMAXPROGRESS " + ValToString(line.Data4);
 
                     break;
-                case 0xa2: // INCPROGRESS <value>
-                    str = "INCPROGRESS " + ValToString(line.Data4);
+                case 0xa2: // INCPROGRESS
+                    str = "INCPROGRESS";
 
                     break;
-                case 0xa3: // DECPROGRESS <value>
-                    str = "DECPROGRESS " + ValToString(line.Data4);
+                case 0xa3: // DECPROGRESS
+                    str = "DECPROGRESS";
 
                     break;
                 case 0xa4: // <var> = GETPROGRESS
@@ -1906,8 +1902,8 @@ namespace AHT_Triggers.Data
                     str = GetVarName(line.Data3) + " = ISTHEREANEWSHOPITEM";
 
                     break;
-                case 0xa9: // TRIGGERCUTSEQUENCE
-                    str = "TRIGGERCUTSEQUENCE";
+                case 0xa9: // CUTSEQUENCEWITHTRIGGERS <hash>
+                    str = "CUTSEQUENCEWITHTRIGGERS " + ValToString(line.Data4);
 
                     break;
                 case 0xaa: // RESETTIMER

@@ -255,6 +255,9 @@ namespace AHT_Triggers
             } else if (VarWnd.IsDisposed)
             {
                 CreateEditVarsWnd();
+            } else
+            {
+                VarWnd.Focus();
             }
         }
 
