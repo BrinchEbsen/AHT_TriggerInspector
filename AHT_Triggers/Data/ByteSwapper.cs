@@ -37,5 +37,17 @@ namespace AHT_Triggers.Data
                  | (0xFF00000000000000) & (uvalue << 56));
             return swapped;
         }
+
+        public static float UintToSingle(uint x)
+        {
+            byte[] bytes = new byte[]{
+                            (byte) (x & 0x000000FF),
+                            (byte)((x & 0x0000FF00) >> 8 ),
+                            (byte)((x & 0x00FF0000) >> 16),
+                            (byte)((x & 0xFF000000) >> 24)
+                        };
+
+            return BitConverter.ToSingle(bytes, 0);
+        }
     }
 }

@@ -56,6 +56,7 @@
     <Compile Include="Data\EDBWriter.cs" />
     <Compile Include="Data\FileHandler.cs" />
     <Compile Include="Data\GameScriptSaveInfo.cs" />
+    <Compile Include="Data\HardCodedMapInfo.cs" />
     <Compile Include="Data\ScriptSaveInfoHandler.cs" />
     <Compile Include="Data\SyntaxHighlight.cs" />
     <Compile Include="Data\Trigger.cs" />

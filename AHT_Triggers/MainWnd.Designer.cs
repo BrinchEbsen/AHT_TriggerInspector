@@ -48,6 +48,8 @@
             this.Lbl_GameFlagsDesc = new System.Windows.Forms.Label();
             this.Lbl_GameFlags = new System.Windows.Forms.Label();
             this.Box_TriggerInfo = new System.Windows.Forms.GroupBox();
+            this.Lbl_GameScript = new System.Windows.Forms.Label();
+            this.Lbl_GameScriptDesc = new System.Windows.Forms.Label();
             this.PicBox_TintColour = new System.Windows.Forms.PictureBox();
             this.Btn_ViewGameScript = new System.Windows.Forms.Button();
             this.Lbl_GeoHash = new System.Windows.Forms.Label();
@@ -86,8 +88,10 @@
             this.Lbl_TrigFlagsDesc = new System.Windows.Forms.Label();
             this.Btn_LoadFile = new System.Windows.Forms.Button();
             this.Lbl_OpenedFileName = new System.Windows.Forms.Label();
-            this.Lbl_GameScriptDesc = new System.Windows.Forms.Label();
-            this.Lbl_GameScript = new System.Windows.Forms.Label();
+            this.Check_ShowDataInHex = new System.Windows.Forms.CheckBox();
+            this.Lbl_MapName = new System.Windows.Forms.Label();
+            this.Lbl_Range = new System.Windows.Forms.Label();
+            this.Lbl_RangeDesc = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.Box_TriggerInfo.SuspendLayout();
@@ -148,7 +152,7 @@
             this.groupBox2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.groupBox2.Location = new System.Drawing.Point(12, 175);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(399, 597);
+            this.groupBox2.Size = new System.Drawing.Size(399, 664);
             this.groupBox2.TabIndex = 2;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Triggers";
@@ -178,7 +182,7 @@
             this.List_Triggers.Location = new System.Drawing.Point(7, 48);
             this.List_Triggers.MultiSelect = false;
             this.List_Triggers.Name = "List_Triggers";
-            this.List_Triggers.Size = new System.Drawing.Size(386, 543);
+            this.List_Triggers.Size = new System.Drawing.Size(386, 610);
             this.List_Triggers.TabIndex = 0;
             this.List_Triggers.UseCompatibleStateImageBehavior = false;
             this.List_Triggers.View = System.Windows.Forms.View.Details;
@@ -279,6 +283,9 @@
             this.Box_TriggerInfo.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.Box_TriggerInfo.Controls.Add(this.Lbl_Range);
+            this.Box_TriggerInfo.Controls.Add(this.Lbl_RangeDesc);
+            this.Box_TriggerInfo.Controls.Add(this.Check_ShowDataInHex);
             this.Box_TriggerInfo.Controls.Add(this.Lbl_GameScript);
             this.Box_TriggerInfo.Controls.Add(this.Lbl_GameScriptDesc);
             this.Box_TriggerInfo.Controls.Add(this.PicBox_TintColour);
@@ -322,18 +329,38 @@
             this.Box_TriggerInfo.Controls.Add(this.Lbl_TriggerSubType);
             this.Box_TriggerInfo.Controls.Add(this.Lbl_TriggerType);
             this.Box_TriggerInfo.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Box_TriggerInfo.Location = new System.Drawing.Point(417, 12);
+            this.Box_TriggerInfo.Location = new System.Drawing.Point(417, 32);
             this.Box_TriggerInfo.Name = "Box_TriggerInfo";
-            this.Box_TriggerInfo.Size = new System.Drawing.Size(702, 760);
+            this.Box_TriggerInfo.Size = new System.Drawing.Size(708, 807);
             this.Box_TriggerInfo.TabIndex = 10;
             this.Box_TriggerInfo.TabStop = false;
             this.Box_TriggerInfo.Text = "Trigger Information";
             this.Box_TriggerInfo.Visible = false;
             // 
+            // Lbl_GameScript
+            // 
+            this.Lbl_GameScript.AutoSize = true;
+            this.Lbl_GameScript.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Lbl_GameScript.Location = new System.Drawing.Point(148, 414);
+            this.Lbl_GameScript.Name = "Lbl_GameScript";
+            this.Lbl_GameScript.Size = new System.Drawing.Size(45, 20);
+            this.Lbl_GameScript.TabIndex = 44;
+            this.Lbl_GameScript.Text = "temp";
+            // 
+            // Lbl_GameScriptDesc
+            // 
+            this.Lbl_GameScriptDesc.AutoSize = true;
+            this.Lbl_GameScriptDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Lbl_GameScriptDesc.Location = new System.Drawing.Point(8, 414);
+            this.Lbl_GameScriptDesc.Name = "Lbl_GameScriptDesc";
+            this.Lbl_GameScriptDesc.Size = new System.Drawing.Size(141, 20);
+            this.Lbl_GameScriptDesc.TabIndex = 43;
+            this.Lbl_GameScriptDesc.Text = "GameScript Index:";
+            // 
             // PicBox_TintColour
             // 
             this.PicBox_TintColour.BackColor = System.Drawing.Color.Azure;
-            this.PicBox_TintColour.Location = new System.Drawing.Point(51, 340);
+            this.PicBox_TintColour.Location = new System.Drawing.Point(51, 385);
             this.PicBox_TintColour.Name = "PicBox_TintColour";
             this.PicBox_TintColour.Size = new System.Drawing.Size(60, 20);
             this.PicBox_TintColour.TabIndex = 42;
@@ -341,7 +368,7 @@
             // 
             // Btn_ViewGameScript
             // 
-            this.Btn_ViewGameScript.Location = new System.Drawing.Point(199, 370);
+            this.Btn_ViewGameScript.Location = new System.Drawing.Point(199, 409);
             this.Btn_ViewGameScript.Name = "Btn_ViewGameScript";
             this.Btn_ViewGameScript.Size = new System.Drawing.Size(145, 30);
             this.Btn_ViewGameScript.TabIndex = 41;
@@ -353,7 +380,7 @@
             // 
             this.Lbl_GeoHash.AutoSize = true;
             this.Lbl_GeoHash.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_GeoHash.Location = new System.Drawing.Point(133, 320);
+            this.Lbl_GeoHash.Location = new System.Drawing.Point(133, 365);
             this.Lbl_GeoHash.Name = "Lbl_GeoHash";
             this.Lbl_GeoHash.Size = new System.Drawing.Size(45, 20);
             this.Lbl_GeoHash.TabIndex = 40;
@@ -363,7 +390,7 @@
             // 
             this.Lbl_GeoHashDesc.AutoSize = true;
             this.Lbl_GeoHashDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_GeoHashDesc.Location = new System.Drawing.Point(6, 320);
+            this.Lbl_GeoHashDesc.Location = new System.Drawing.Point(6, 365);
             this.Lbl_GeoHashDesc.Name = "Lbl_GeoHashDesc";
             this.Lbl_GeoHashDesc.Size = new System.Drawing.Size(121, 20);
             this.Lbl_GeoHashDesc.TabIndex = 39;
@@ -373,7 +400,7 @@
             // 
             this.Lbl_GFXHash.AutoSize = true;
             this.Lbl_GFXHash.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_GFXHash.Location = new System.Drawing.Point(133, 300);
+            this.Lbl_GFXHash.Location = new System.Drawing.Point(133, 345);
             this.Lbl_GFXHash.Name = "Lbl_GFXHash";
             this.Lbl_GFXHash.Size = new System.Drawing.Size(45, 20);
             this.Lbl_GFXHash.TabIndex = 38;
@@ -383,7 +410,7 @@
             // 
             this.Lbl_GFXHashDesc.AutoSize = true;
             this.Lbl_GFXHashDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_GFXHashDesc.Location = new System.Drawing.Point(6, 300);
+            this.Lbl_GFXHashDesc.Location = new System.Drawing.Point(6, 345);
             this.Lbl_GFXHashDesc.Name = "Lbl_GFXHashDesc";
             this.Lbl_GFXHashDesc.Size = new System.Drawing.Size(124, 20);
             this.Lbl_GFXHashDesc.TabIndex = 37;
@@ -393,7 +420,7 @@
             // 
             this.Lbl_Tint.AutoSize = true;
             this.Lbl_Tint.Font = new System.Drawing.Font("Courier New", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_Tint.Location = new System.Drawing.Point(133, 340);
+            this.Lbl_Tint.Location = new System.Drawing.Point(133, 385);
             this.Lbl_Tint.Name = "Lbl_Tint";
             this.Lbl_Tint.Size = new System.Drawing.Size(48, 18);
             this.Lbl_Tint.TabIndex = 36;
@@ -403,7 +430,7 @@
             // 
             this.Lbl_TintDesc.AutoSize = true;
             this.Lbl_TintDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_TintDesc.Location = new System.Drawing.Point(6, 340);
+            this.Lbl_TintDesc.Location = new System.Drawing.Point(6, 385);
             this.Lbl_TintDesc.Name = "Lbl_TintDesc";
             this.Lbl_TintDesc.Size = new System.Drawing.Size(39, 20);
             this.Lbl_TintDesc.TabIndex = 35;
@@ -414,9 +441,9 @@
             this.Box_TriggerLinks.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.Box_TriggerLinks.Controls.Add(this.Lbl_TriggerLinks);
-            this.Box_TriggerLinks.Location = new System.Drawing.Point(429, 427);
+            this.Box_TriggerLinks.Location = new System.Drawing.Point(435, 479);
             this.Box_TriggerLinks.Name = "Box_TriggerLinks";
-            this.Box_TriggerLinks.Size = new System.Drawing.Size(267, 327);
+            this.Box_TriggerLinks.Size = new System.Drawing.Size(267, 322);
             this.Box_TriggerLinks.TabIndex = 34;
             this.Box_TriggerLinks.TabStop = false;
             this.Box_TriggerLinks.Text = "Links";
@@ -437,9 +464,9 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.Box_TriggerData.Controls.Add(this.label1);
             this.Box_TriggerData.Controls.Add(this.Lbl_TriggerData);
-            this.Box_TriggerData.Location = new System.Drawing.Point(12, 427);
+            this.Box_TriggerData.Location = new System.Drawing.Point(12, 479);
             this.Box_TriggerData.Name = "Box_TriggerData";
-            this.Box_TriggerData.Size = new System.Drawing.Size(411, 327);
+            this.Box_TriggerData.Size = new System.Drawing.Size(417, 322);
             this.Box_TriggerData.TabIndex = 33;
             this.Box_TriggerData.TabStop = false;
             this.Box_TriggerData.Text = "Data";
@@ -468,7 +495,7 @@
             // 
             this.Lbl_ScaleZ.AutoSize = true;
             this.Lbl_ScaleZ.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_ScaleZ.Location = new System.Drawing.Point(269, 271);
+            this.Lbl_ScaleZ.Location = new System.Drawing.Point(269, 306);
             this.Lbl_ScaleZ.Name = "Lbl_ScaleZ";
             this.Lbl_ScaleZ.Size = new System.Drawing.Size(45, 20);
             this.Lbl_ScaleZ.TabIndex = 32;
@@ -478,7 +505,7 @@
             // 
             this.Lbl_ScaleZDesc.AutoSize = true;
             this.Lbl_ScaleZDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_ScaleZDesc.Location = new System.Drawing.Point(240, 271);
+            this.Lbl_ScaleZDesc.Location = new System.Drawing.Point(240, 306);
             this.Lbl_ScaleZDesc.Name = "Lbl_ScaleZDesc";
             this.Lbl_ScaleZDesc.Size = new System.Drawing.Size(23, 20);
             this.Lbl_ScaleZDesc.TabIndex = 31;
@@ -488,7 +515,7 @@
             // 
             this.Lbl_ScaleY.AutoSize = true;
             this.Lbl_ScaleY.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_ScaleY.Location = new System.Drawing.Point(162, 271);
+            this.Lbl_ScaleY.Location = new System.Drawing.Point(162, 306);
             this.Lbl_ScaleY.Name = "Lbl_ScaleY";
             this.Lbl_ScaleY.Size = new System.Drawing.Size(45, 20);
             this.Lbl_ScaleY.TabIndex = 30;
@@ -498,7 +525,7 @@
             // 
             this.Lbl_ScaleYDesc.AutoSize = true;
             this.Lbl_ScaleYDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_ScaleYDesc.Location = new System.Drawing.Point(133, 271);
+            this.Lbl_ScaleYDesc.Location = new System.Drawing.Point(133, 306);
             this.Lbl_ScaleYDesc.Name = "Lbl_ScaleYDesc";
             this.Lbl_ScaleYDesc.Size = new System.Drawing.Size(24, 20);
             this.Lbl_ScaleYDesc.TabIndex = 29;
@@ -508,7 +535,7 @@
             // 
             this.Lbl_ScaleX.AutoSize = true;
             this.Lbl_ScaleX.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_ScaleX.Location = new System.Drawing.Point(53, 271);
+            this.Lbl_ScaleX.Location = new System.Drawing.Point(53, 306);
             this.Lbl_ScaleX.Name = "Lbl_ScaleX";
             this.Lbl_ScaleX.Size = new System.Drawing.Size(45, 20);
             this.Lbl_ScaleX.TabIndex = 28;
@@ -518,7 +545,7 @@
             // 
             this.Lbl_ScaleXDesc.AutoSize = true;
             this.Lbl_ScaleXDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_ScaleXDesc.Location = new System.Drawing.Point(24, 271);
+            this.Lbl_ScaleXDesc.Location = new System.Drawing.Point(24, 306);
             this.Lbl_ScaleXDesc.Name = "Lbl_ScaleXDesc";
             this.Lbl_ScaleXDesc.Size = new System.Drawing.Size(24, 20);
             this.Lbl_ScaleXDesc.TabIndex = 27;
@@ -528,7 +555,7 @@
             // 
             this.Lbl_ScaleDesc.AutoSize = true;
             this.Lbl_ScaleDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_ScaleDesc.Location = new System.Drawing.Point(8, 251);
+            this.Lbl_ScaleDesc.Location = new System.Drawing.Point(8, 286);
             this.Lbl_ScaleDesc.Name = "Lbl_ScaleDesc";
             this.Lbl_ScaleDesc.Size = new System.Drawing.Size(53, 20);
             this.Lbl_ScaleDesc.TabIndex = 26;
@@ -538,7 +565,7 @@
             // 
             this.Lbl_RotZ.AutoSize = true;
             this.Lbl_RotZ.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_RotZ.Location = new System.Drawing.Point(269, 231);
+            this.Lbl_RotZ.Location = new System.Drawing.Point(269, 266);
             this.Lbl_RotZ.Name = "Lbl_RotZ";
             this.Lbl_RotZ.Size = new System.Drawing.Size(45, 20);
             this.Lbl_RotZ.TabIndex = 25;
@@ -548,7 +575,7 @@
             // 
             this.Lbl_RotZDesc.AutoSize = true;
             this.Lbl_RotZDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_RotZDesc.Location = new System.Drawing.Point(240, 231);
+            this.Lbl_RotZDesc.Location = new System.Drawing.Point(240, 266);
             this.Lbl_RotZDesc.Name = "Lbl_RotZDesc";
             this.Lbl_RotZDesc.Size = new System.Drawing.Size(23, 20);
             this.Lbl_RotZDesc.TabIndex = 24;
@@ -558,7 +585,7 @@
             // 
             this.Lbl_RotY.AutoSize = true;
             this.Lbl_RotY.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_RotY.Location = new System.Drawing.Point(162, 231);
+            this.Lbl_RotY.Location = new System.Drawing.Point(162, 266);
             this.Lbl_RotY.Name = "Lbl_RotY";
             this.Lbl_RotY.Size = new System.Drawing.Size(45, 20);
             this.Lbl_RotY.TabIndex = 23;
@@ -568,7 +595,7 @@
             // 
             this.Lbl_RotYDesc.AutoSize = true;
             this.Lbl_RotYDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_RotYDesc.Location = new System.Drawing.Point(133, 231);
+            this.Lbl_RotYDesc.Location = new System.Drawing.Point(133, 266);
             this.Lbl_RotYDesc.Name = "Lbl_RotYDesc";
             this.Lbl_RotYDesc.Size = new System.Drawing.Size(24, 20);
             this.Lbl_RotYDesc.TabIndex = 22;
@@ -578,7 +605,7 @@
             // 
             this.Lbl_RotX.AutoSize = true;
             this.Lbl_RotX.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_RotX.Location = new System.Drawing.Point(53, 231);
+            this.Lbl_RotX.Location = new System.Drawing.Point(53, 266);
             this.Lbl_RotX.Name = "Lbl_RotX";
             this.Lbl_RotX.Size = new System.Drawing.Size(45, 20);
             this.Lbl_RotX.TabIndex = 21;
@@ -588,7 +615,7 @@
             // 
             this.Lbl_RotXDesc.AutoSize = true;
             this.Lbl_RotXDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_RotXDesc.Location = new System.Drawing.Point(24, 231);
+            this.Lbl_RotXDesc.Location = new System.Drawing.Point(24, 266);
             this.Lbl_RotXDesc.Name = "Lbl_RotXDesc";
             this.Lbl_RotXDesc.Size = new System.Drawing.Size(24, 20);
             this.Lbl_RotXDesc.TabIndex = 20;
@@ -598,7 +625,7 @@
             // 
             this.Lbl_RotDesc.AutoSize = true;
             this.Lbl_RotDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_RotDesc.Location = new System.Drawing.Point(8, 211);
+            this.Lbl_RotDesc.Location = new System.Drawing.Point(8, 246);
             this.Lbl_RotDesc.Name = "Lbl_RotDesc";
             this.Lbl_RotDesc.Size = new System.Drawing.Size(74, 20);
             this.Lbl_RotDesc.TabIndex = 19;
@@ -608,7 +635,7 @@
             // 
             this.Lbl_PosZ.AutoSize = true;
             this.Lbl_PosZ.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_PosZ.Location = new System.Drawing.Point(269, 191);
+            this.Lbl_PosZ.Location = new System.Drawing.Point(269, 226);
             this.Lbl_PosZ.Name = "Lbl_PosZ";
             this.Lbl_PosZ.Size = new System.Drawing.Size(45, 20);
             this.Lbl_PosZ.TabIndex = 18;
@@ -618,7 +645,7 @@
             // 
             this.Lbl_PosZDesc.AutoSize = true;
             this.Lbl_PosZDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_PosZDesc.Location = new System.Drawing.Point(240, 191);
+            this.Lbl_PosZDesc.Location = new System.Drawing.Point(240, 226);
             this.Lbl_PosZDesc.Name = "Lbl_PosZDesc";
             this.Lbl_PosZDesc.Size = new System.Drawing.Size(23, 20);
             this.Lbl_PosZDesc.TabIndex = 17;
@@ -628,7 +655,7 @@
             // 
             this.Lbl_PosY.AutoSize = true;
             this.Lbl_PosY.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_PosY.Location = new System.Drawing.Point(162, 191);
+            this.Lbl_PosY.Location = new System.Drawing.Point(162, 226);
             this.Lbl_PosY.Name = "Lbl_PosY";
             this.Lbl_PosY.Size = new System.Drawing.Size(45, 20);
             this.Lbl_PosY.TabIndex = 16;
@@ -638,7 +665,7 @@
             // 
             this.Lbl_PosYDesc.AutoSize = true;
             this.Lbl_PosYDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_PosYDesc.Location = new System.Drawing.Point(133, 191);
+            this.Lbl_PosYDesc.Location = new System.Drawing.Point(133, 226);
             this.Lbl_PosYDesc.Name = "Lbl_PosYDesc";
             this.Lbl_PosYDesc.Size = new System.Drawing.Size(24, 20);
             this.Lbl_PosYDesc.TabIndex = 15;
@@ -648,7 +675,7 @@
             // 
             this.Lbl_PosX.AutoSize = true;
             this.Lbl_PosX.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_PosX.Location = new System.Drawing.Point(53, 191);
+            this.Lbl_PosX.Location = new System.Drawing.Point(53, 226);
             this.Lbl_PosX.Name = "Lbl_PosX";
             this.Lbl_PosX.Size = new System.Drawing.Size(45, 20);
             this.Lbl_PosX.TabIndex = 14;
@@ -658,7 +685,7 @@
             // 
             this.Lbl_PosXDesc.AutoSize = true;
             this.Lbl_PosXDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_PosXDesc.Location = new System.Drawing.Point(24, 191);
+            this.Lbl_PosXDesc.Location = new System.Drawing.Point(24, 226);
             this.Lbl_PosXDesc.Name = "Lbl_PosXDesc";
             this.Lbl_PosXDesc.Size = new System.Drawing.Size(24, 20);
             this.Lbl_PosXDesc.TabIndex = 13;
@@ -668,7 +695,7 @@
             // 
             this.Lbl_PosDesc.AutoSize = true;
             this.Lbl_PosDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_PosDesc.Location = new System.Drawing.Point(8, 171);
+            this.Lbl_PosDesc.Location = new System.Drawing.Point(8, 206);
             this.Lbl_PosDesc.Name = "Lbl_PosDesc";
             this.Lbl_PosDesc.Size = new System.Drawing.Size(69, 20);
             this.Lbl_PosDesc.TabIndex = 12;
@@ -714,32 +741,55 @@
             this.Lbl_OpenedFileName.TabIndex = 12;
             this.Lbl_OpenedFileName.Text = "No file loaded";
             // 
-            // Lbl_GameScriptDesc
+            // Check_ShowDataInHex
             // 
-            this.Lbl_GameScriptDesc.AutoSize = true;
-            this.Lbl_GameScriptDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_GameScriptDesc.Location = new System.Drawing.Point(8, 375);
-            this.Lbl_GameScriptDesc.Name = "Lbl_GameScriptDesc";
-            this.Lbl_GameScriptDesc.Size = new System.Drawing.Size(141, 20);
-            this.Lbl_GameScriptDesc.TabIndex = 43;
-            this.Lbl_GameScriptDesc.Text = "GameScript Index:";
+            this.Check_ShowDataInHex.AutoSize = true;
+            this.Check_ShowDataInHex.Location = new System.Drawing.Point(57, 463);
+            this.Check_ShowDataInHex.Name = "Check_ShowDataInHex";
+            this.Check_ShowDataInHex.Size = new System.Drawing.Size(53, 22);
+            this.Check_ShowDataInHex.TabIndex = 45;
+            this.Check_ShowDataInHex.Text = "Hex";
+            this.Check_ShowDataInHex.UseVisualStyleBackColor = true;
+            this.Check_ShowDataInHex.CheckedChanged += new System.EventHandler(this.Check_ShowDataInHex_CheckedChanged);
             // 
-            // Lbl_GameScript
+            // Lbl_MapName
             // 
-            this.Lbl_GameScript.AutoSize = true;
-            this.Lbl_GameScript.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_GameScript.Location = new System.Drawing.Point(148, 375);
-            this.Lbl_GameScript.Name = "Lbl_GameScript";
-            this.Lbl_GameScript.Size = new System.Drawing.Size(45, 20);
-            this.Lbl_GameScript.TabIndex = 44;
-            this.Lbl_GameScript.Text = "temp";
+            this.Lbl_MapName.AutoSize = true;
+            this.Lbl_MapName.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Lbl_MapName.Location = new System.Drawing.Point(309, 11);
+            this.Lbl_MapName.Name = "Lbl_MapName";
+            this.Lbl_MapName.Size = new System.Drawing.Size(37, 16);
+            this.Lbl_MapName.TabIndex = 13;
+            this.Lbl_MapName.Text = "temp";
+            this.Lbl_MapName.Visible = false;
+            // 
+            // Lbl_Range
+            // 
+            this.Lbl_Range.AutoSize = true;
+            this.Lbl_Range.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Lbl_Range.Location = new System.Drawing.Point(108, 172);
+            this.Lbl_Range.Name = "Lbl_Range";
+            this.Lbl_Range.Size = new System.Drawing.Size(45, 20);
+            this.Lbl_Range.TabIndex = 47;
+            this.Lbl_Range.Text = "temp";
+            // 
+            // Lbl_RangeDesc
+            // 
+            this.Lbl_RangeDesc.AutoSize = true;
+            this.Lbl_RangeDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Lbl_RangeDesc.Location = new System.Drawing.Point(6, 172);
+            this.Lbl_RangeDesc.Name = "Lbl_RangeDesc";
+            this.Lbl_RangeDesc.Size = new System.Drawing.Size(61, 20);
+            this.Lbl_RangeDesc.TabIndex = 46;
+            this.Lbl_RangeDesc.Text = "Range:";
             // 
             // MainWnd
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1131, 784);
+            this.ClientSize = new System.Drawing.Size(1137, 851);
+            this.Controls.Add(this.Lbl_MapName);
             this.Controls.Add(this.Lbl_OpenedFileName);
             this.Controls.Add(this.Btn_LoadFile);
             this.Controls.Add(this.Box_TriggerInfo);
@@ -826,6 +876,10 @@
         private System.Windows.Forms.Label Lbl_OpenedFileName;
         private System.Windows.Forms.Label Lbl_GameScript;
         private System.Windows.Forms.Label Lbl_GameScriptDesc;
+        private System.Windows.Forms.CheckBox Check_ShowDataInHex;
+        private System.Windows.Forms.Label Lbl_MapName;
+        private System.Windows.Forms.Label Lbl_Range;
+        private System.Windows.Forms.Label Lbl_RangeDesc;
     }
 }
 

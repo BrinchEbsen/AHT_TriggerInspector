@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static AHT_Triggers.Data.MapInfo;
 
 namespace AHT_Triggers
 {
@@ -18,6 +19,8 @@ namespace AHT_Triggers
     {
         List<MapTriggerData> ViewingData = null;
         string ViewingFile;
+        bool MapHasOwnRange = false;
+        HardCodedMapInfo HCMapInfo = new HardCodedMapInfo();
         int SelectedMap = -1;
         int SelectedTrigger = -1;
         ScriptViewer scriptViewer;
@@ -57,6 +60,27 @@ namespace AHT_Triggers
                 ViewingFile = Path.GetFileName(FilePath);
 
                 Lbl_OpenedFileName.Text = "Viewing file " + ViewingFile;
+
+                //Get the hard-coded info for the map
+                string fileNameNoExt = ViewingFile.Replace(".edb", "");
+
+                if (MAP_FILE_INFO.ContainsKey(fileNameNoExt))
+                {
+                    HCMapInfo = MAP_FILE_INFO[fileNameNoExt];
+
+                    MapHasOwnRange = HCMapInfo.HasOwnRange;
+
+                    Lbl_MapName.Visible = true;
+                    Lbl_MapName.Text = "Internal Map Name: " + HCMapInfo.MapName;
+                } else
+                {
+                    Lbl_MapName.Visible = false;
+
+                    MapHasOwnRange = false;
+
+                    HCMapInfo.MapName = string.Empty;
+                    HCMapInfo.DefaultTriggerRange = 0f;
+                }
 
                 PopulateMapList();
             }
@@ -187,6 +211,31 @@ namespace AHT_Triggers
             Lbl_GameFlags.Text = string.Format("0x{0:X}", trig.GameFlags);
             Lbl_TrigFlags.Text = string.Format("0x{0:X}", trig.TrigFlags);
 
+            bool triggerHasRange = false;
+
+            uint? data10 = trig.GetData(10);
+            uint? data11 = trig.GetData(11);
+            if (data10.HasValue)
+            {
+                if ((data10.Value & 2) != 0) triggerHasRange = true;
+            }
+
+            if (triggerHasRange)
+            {
+                if (!data11.HasValue)
+                {
+                    data11 = 0;
+                }
+
+                Lbl_Range.Text = ByteSwapper.UintToSingle(data11.Value).ToString();
+            } else if (MapHasOwnRange)
+            {
+                Lbl_Range.Text = HCMapInfo.DefaultTriggerRange.ToString() + " (default)";
+            } else
+            {
+                Lbl_Range.Text = BASE_DEFAULT_TRIGGER_RANGE.ToString() + " (default)";
+            }
+
             Lbl_PosX.Text = string.Format("{0:0.00}", trig.Position.x);
             Lbl_PosY.Text = string.Format("{0:0.00}", trig.Position.y);
             Lbl_PosZ.Text = string.Format("{0:0.00}", trig.Position.z);
@@ -201,13 +250,26 @@ namespace AHT_Triggers
 
             //A trigger has 16 slots for data, but they only use ones defined by the TrigFlags
             StringBuilder str = new StringBuilder();
-            int j = 0; //index into trigger data list
+            int j = 0; //index into trigger data list, increment every time a piece of data is displayed
+
+            //Loop through all slots and insert a string representing that data
             for (int i = 0; i<16; i++)
             {
                 //Only add data if the trigger has it defined for this slot
                 if (trig.HasData(i))
                 {
                     uint dat = trig.Data[j];
+
+                    //If requested, only format it in hex
+                    if (Check_ShowDataInHex.Checked)
+                    {
+                        //Make sure it's filled with zeros
+                        string valStr = string.Format("{0:X}", dat).PadLeft(8, '0');
+
+                        str.AppendLine("0x" + valStr);
+                        j++;
+                        continue;
+                    }
 
                     //Test if it's a Hashcode
                     if (Enum.IsDefined(typeof(EXHashCode), dat) && (dat != 0))
@@ -229,14 +291,16 @@ namespace AHT_Triggers
                     int dat2 = (int)dat;
                     if ((dat2 < -99999) | (dat2 > 99999))
                     {
-                        byte[] bytes = new byte[]{
-                            (byte) (dat2 & 0x000000FF),
-                            (byte)((dat2 & 0x0000FF00) >> 8 ),
-                            (byte)((dat2 & 0x00FF0000) >> 16),
-                            (byte)((dat2 & 0xFF000000) >> 24)
-                        };
+                        float val = ByteSwapper.UintToSingle((uint)dat2);
+                        string valStr = string.Format("{0:0.0#}", val);
 
-                        str.AppendLine(BitConverter.ToSingle(bytes, 0).ToString());
+                        //Show that it's the field defining the trigger's range (if it is)
+                        if ((i == 11) && triggerHasRange)
+                        {
+                            valStr += " (range)";
+                        }
+
+                        str.AppendLine(valStr);
                         j++;
                         continue;
                     }
@@ -419,6 +483,11 @@ namespace AHT_Triggers
                 e.Effect = DragDropEffects.All;
             else
                 e.Effect = DragDropEffects.None;
+        }
+
+        private void Check_ShowDataInHex_CheckedChanged(object sender, EventArgs e)
+        {
+            PopulateTriggerInfo();
         }
     }
 }

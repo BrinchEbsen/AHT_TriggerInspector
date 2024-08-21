@@ -22,19 +22,19 @@ namespace AHT_Triggers.Data
         /// <summary>
         /// No errors occoured during decompilation.
         /// </summary>
-        Success,
+        Success = 0b0,
         /// <summary>
         /// The indentation went negative.
         /// </summary>
-        NegativeIndent,
+        NegativeIndent = 0b1,
         /// <summary>
         /// An attempt was made to index a variable out of bounds.
         /// </summary>
-        InvalidVar,
+        InvalidVar = 0b10,
         /// <summary>
         /// An attempt was made to index a procedure out of bounds.
         /// </summary>
-        InvalidProc
+        InvalidProc = 0b100
     }
 
     /// <summary>
@@ -85,7 +85,7 @@ namespace AHT_Triggers.Data
         /// <summary>
         /// How many spaces are added for each indentation level.
         /// </summary>
-        private static readonly int INDENT_LEVEL = 2;
+        private static readonly int INDENT_LEVEL = 4;
 
         /// <summary>
         /// Describes how a line of code will change the indentation.
@@ -163,14 +163,35 @@ namespace AHT_Triggers.Data
         private DecodeResult CurrentDecodeResult = DecodeResult.Success;
 
         /// <summary>
-        /// List of predefined language-level variables.
+        /// List of internal globals.
         /// These are always present if any variables are used, and are used for things such as return values, messages from other triggers etc.
         /// </summary>
         private static readonly Dictionary<int, string> LVAR_NAMES = new Dictionary<int, string>
         {
+          //[0]
+          //[1]
+          //[2]
+          //[3]
+          //[4]
             [5]  = "YESNO",
+          //[6]
             [7]  = "MESSAGE",
-            [15] = "RETURN0"
+          //[8]
+          //[9]
+          //[10]
+          //[11]
+          //[12]
+          //[13]
+          //[14]
+            [15] = "RETURN0",
+            [16] = "RETURN1",
+            [17] = "RETURN2",
+            [18] = "RETURN3",
+            [19] = "RETURN4",
+            [20] = "RETURN5",
+            [21] = "RETURN6",
+            [22] = "RETURN7"
+          //[23]
         };
 
         /// <summary>
@@ -636,6 +657,73 @@ namespace AHT_Triggers.Data
         }
 
         /// <summary>
+        /// Returns if the ENDPROC command on the given line is the one that closes out a procedure.
+        /// </summary>
+        /// <param name="lineNr">Line in the code of the ENDPROC command.</param>
+        /// <returns>true if the command closes out the procedure.</returns>
+        private bool EndProcIsFinal(int lineNr)
+        {
+            //False if not an ENDPROC command
+            if (Script.Code[lineNr].InstructionID != 0x1e)
+            {
+                return false;
+            }
+
+            //True if a procedure starts right afterwards.
+            foreach (Procedure proc in Script.Procedures)
+            {
+                if (proc.StartLine == lineNr + 1)
+                {
+                    return true;
+                }
+            }
+
+            //True if it's the final line of the script
+            if (lineNr == Script.NumLines - 1)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Check if a procedure ever returns a value or variable.
+        /// </summary>
+        /// <param name="procNr">Index of procedure.</param>
+        /// <returns>true if procedure returns variable/value, false if it just returns.</returns>
+        private bool ProcReturnsValue(int procNr)
+        {
+            //Abort if out of bounds
+            if ((procNr < 0) || (procNr >= Script.NumProcs))
+            {
+                CurrentDecodeResult |= DecodeResult.InvalidProc;
+                return false;
+            }
+
+            //Loop through lines starting from procedure start
+            for (int i = Script.Procedures[procNr].StartLine; i < Script.NumLines; i++)
+            {
+                CodeLine line = Script.Code[i];
+
+                //Check for endproc
+                if (line.InstructionID == 0x1e)
+                {
+                    //If data1 is 1, it returns a variable/value
+                    if (line.Data1 != 0)
+                    {
+                        return true;
+                    }
+                }
+
+                //If we've reached the end, just return.
+                if (EndProcIsFinal(i)) return false;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Decompile the gamescript and put it in a string.
         /// Decompilation includes deciphering each command to a text representation,
         /// adding intendation for readability, adding variable declaration etc...
@@ -1028,7 +1116,10 @@ namespace AHT_Triggers.Data
             //Format string depending on the instruction ID of the line
             switch(line.InstructionID)
             {
-                //GENERIC
+                /*--------------------*/
+                /*- GENERIC COMMANDS -*/
+                /*--------------------*/
+
                 case 0x2: // IF <var1> <operator> <var2>
                     CurrentIndentState = IndentState.IncAfter;
                     str = "IF " + CreateCompareStatement(
@@ -1201,19 +1292,8 @@ namespace AHT_Triggers.Data
 
                     break;
                 case 0x1e: // ENDPROC <optional var/value>
-                    CurrentIndentState = IndentState.None;
-
-                    //Change indentation if another procedure starts right after
-                    foreach (Procedure proc in Script.Procedures)
-                    {
-                        if (proc.StartLine == lineNr+1)
-                        {
-                            CurrentIndentState = IndentState.DecBefore;
-                            break;
-                        }
-                    }
-                    //Change indentation if its the last command of the gamescript
-                    if (lineNr == Script.NumLines-1)
+                    //Decrease indentation if this command closes out a procedure
+                    if (EndProcIsFinal(lineNr))
                     {
                         CurrentIndentState = IndentState.DecBefore;
                     }
@@ -1231,11 +1311,23 @@ namespace AHT_Triggers.Data
 
                     break;
                 case 0x20: // <var> = CALLPROC <procedure>
-                    str = GetVarName(line.Data3) + " = CALLPROC " + GetProcName(line.Data1);
+                    str = "CALLPROC " + GetProcName(line.Data1);
+
+                    //Only add variable assignment if procedure returns a value
+                    if (ProcReturnsValue(line.Data1))
+                    {
+                        str = GetVarName(line.Data3) + " = " + str;
+                    }
 
                     break;
                 case 0x21: // <var> = INSTANCE <procedure>
-                    str = GetVarName(line.Data3) + " = INSTANCE " + GetProcName(line.Data1);
+                    str = "INSTANCE " + GetProcName(line.Data1);
+
+                    //Only add variable assignment if procedure returns a value
+                    if (ProcReturnsValue(line.Data1))
+                    {
+                        str = GetVarName(line.Data3) + " = " + str;
+                    }
 
                     break;
                 case 0x22: // BREAK
@@ -1425,7 +1517,10 @@ namespace AHT_Triggers.Data
 
                     break;
 
-                //GAME-SPECIFIC
+                /*--------------------------*/
+                /*- GAME-SPECIFIC COMMANDS -*/
+                /*--------------------------*/
+
                 case 0x3d: // <var> = GETOBJECTIVE <hash>
                     str = GetVarName(line.Data3) + " = GETOBJECTIVE " + ValToString(line.Data4);
 
