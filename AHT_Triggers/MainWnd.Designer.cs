@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.List_Maps = new System.Windows.Forms.ListView();
             this.MapIndex = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -48,6 +49,9 @@
             this.Lbl_GameFlagsDesc = new System.Windows.Forms.Label();
             this.Lbl_GameFlags = new System.Windows.Forms.Label();
             this.Box_TriggerInfo = new System.Windows.Forms.GroupBox();
+            this.Lbl_Range = new System.Windows.Forms.Label();
+            this.Lbl_RangeDesc = new System.Windows.Forms.Label();
+            this.Check_ShowDataInHex = new System.Windows.Forms.CheckBox();
             this.Lbl_GameScript = new System.Windows.Forms.Label();
             this.Lbl_GameScriptDesc = new System.Windows.Forms.Label();
             this.PicBox_TintColour = new System.Windows.Forms.PictureBox();
@@ -88,10 +92,8 @@
             this.Lbl_TrigFlagsDesc = new System.Windows.Forms.Label();
             this.Btn_LoadFile = new System.Windows.Forms.Button();
             this.Lbl_OpenedFileName = new System.Windows.Forms.Label();
-            this.Check_ShowDataInHex = new System.Windows.Forms.CheckBox();
             this.Lbl_MapName = new System.Windows.Forms.Label();
-            this.Lbl_Range = new System.Windows.Forms.Label();
-            this.Lbl_RangeDesc = new System.Windows.Forms.Label();
+            this.ToolTips = new System.Windows.Forms.ToolTip(this.components);
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.Box_TriggerInfo.SuspendLayout();
@@ -165,6 +167,7 @@
             this.Check_OnlyScripted.Size = new System.Drawing.Size(146, 19);
             this.Check_OnlyScripted.TabIndex = 1;
             this.Check_OnlyScripted.Text = "Only Scripted Triggers";
+            this.ToolTips.SetToolTip(this.Check_OnlyScripted, "Only list triggers that have gamescripts tied to them.");
             this.Check_OnlyScripted.UseVisualStyleBackColor = true;
             this.Check_OnlyScripted.CheckedChanged += new System.EventHandler(this.Check_OnlyScripted_CheckedChanged);
             // 
@@ -337,6 +340,41 @@
             this.Box_TriggerInfo.Text = "Trigger Information";
             this.Box_TriggerInfo.Visible = false;
             // 
+            // Lbl_Range
+            // 
+            this.Lbl_Range.AutoSize = true;
+            this.Lbl_Range.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Lbl_Range.Location = new System.Drawing.Point(108, 172);
+            this.Lbl_Range.Name = "Lbl_Range";
+            this.Lbl_Range.Size = new System.Drawing.Size(45, 20);
+            this.Lbl_Range.TabIndex = 47;
+            this.Lbl_Range.Text = "temp";
+            this.ToolTips.SetToolTip(this.Lbl_Range, "If the second bit in data slot 10 is set, data slot 11 will be used as this trigg" +
+        "er\'s range.\r\nIf not, the map\'s default trigger range is used.");
+            // 
+            // Lbl_RangeDesc
+            // 
+            this.Lbl_RangeDesc.AutoSize = true;
+            this.Lbl_RangeDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Lbl_RangeDesc.Location = new System.Drawing.Point(6, 172);
+            this.Lbl_RangeDesc.Name = "Lbl_RangeDesc";
+            this.Lbl_RangeDesc.Size = new System.Drawing.Size(61, 20);
+            this.Lbl_RangeDesc.TabIndex = 46;
+            this.Lbl_RangeDesc.Text = "Range:";
+            // 
+            // Check_ShowDataInHex
+            // 
+            this.Check_ShowDataInHex.AutoSize = true;
+            this.Check_ShowDataInHex.Location = new System.Drawing.Point(57, 463);
+            this.Check_ShowDataInHex.Name = "Check_ShowDataInHex";
+            this.Check_ShowDataInHex.Size = new System.Drawing.Size(53, 22);
+            this.Check_ShowDataInHex.TabIndex = 45;
+            this.Check_ShowDataInHex.Text = "Hex";
+            this.ToolTips.SetToolTip(this.Check_ShowDataInHex, "Display the data in its raw hex format.\r\nWhen unchecked, data is interpreted into" +
+        " more readable formats.");
+            this.Check_ShowDataInHex.UseVisualStyleBackColor = true;
+            this.Check_ShowDataInHex.CheckedChanged += new System.EventHandler(this.Check_ShowDataInHex_CheckedChanged);
+            // 
             // Lbl_GameScript
             // 
             this.Lbl_GameScript.AutoSize = true;
@@ -373,6 +411,8 @@
             this.Btn_ViewGameScript.Size = new System.Drawing.Size(145, 30);
             this.Btn_ViewGameScript.TabIndex = 41;
             this.Btn_ViewGameScript.Text = "View GameScript";
+            this.ToolTips.SetToolTip(this.Btn_ViewGameScript, "Open the script viewer window to view a decompiled version of the gamescript tied" +
+        " to this trigger.");
             this.Btn_ViewGameScript.UseVisualStyleBackColor = true;
             this.Btn_ViewGameScript.Click += new System.EventHandler(this.Btn_ViewGameScript_Click);
             // 
@@ -728,6 +768,7 @@
             this.Btn_LoadFile.Size = new System.Drawing.Size(109, 28);
             this.Btn_LoadFile.TabIndex = 11;
             this.Btn_LoadFile.Text = "Load File";
+            this.ToolTips.SetToolTip(this.Btn_LoadFile, "Load an .edb file to be inspected.");
             this.Btn_LoadFile.UseVisualStyleBackColor = true;
             this.Btn_LoadFile.Click += new System.EventHandler(this.Btn_LoadFile_Click_1);
             // 
@@ -741,17 +782,6 @@
             this.Lbl_OpenedFileName.TabIndex = 12;
             this.Lbl_OpenedFileName.Text = "No file loaded";
             // 
-            // Check_ShowDataInHex
-            // 
-            this.Check_ShowDataInHex.AutoSize = true;
-            this.Check_ShowDataInHex.Location = new System.Drawing.Point(57, 463);
-            this.Check_ShowDataInHex.Name = "Check_ShowDataInHex";
-            this.Check_ShowDataInHex.Size = new System.Drawing.Size(53, 22);
-            this.Check_ShowDataInHex.TabIndex = 45;
-            this.Check_ShowDataInHex.Text = "Hex";
-            this.Check_ShowDataInHex.UseVisualStyleBackColor = true;
-            this.Check_ShowDataInHex.CheckedChanged += new System.EventHandler(this.Check_ShowDataInHex_CheckedChanged);
-            // 
             // Lbl_MapName
             // 
             this.Lbl_MapName.AutoSize = true;
@@ -762,26 +792,6 @@
             this.Lbl_MapName.TabIndex = 13;
             this.Lbl_MapName.Text = "temp";
             this.Lbl_MapName.Visible = false;
-            // 
-            // Lbl_Range
-            // 
-            this.Lbl_Range.AutoSize = true;
-            this.Lbl_Range.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_Range.Location = new System.Drawing.Point(108, 172);
-            this.Lbl_Range.Name = "Lbl_Range";
-            this.Lbl_Range.Size = new System.Drawing.Size(45, 20);
-            this.Lbl_Range.TabIndex = 47;
-            this.Lbl_Range.Text = "temp";
-            // 
-            // Lbl_RangeDesc
-            // 
-            this.Lbl_RangeDesc.AutoSize = true;
-            this.Lbl_RangeDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Lbl_RangeDesc.Location = new System.Drawing.Point(6, 172);
-            this.Lbl_RangeDesc.Name = "Lbl_RangeDesc";
-            this.Lbl_RangeDesc.Size = new System.Drawing.Size(61, 20);
-            this.Lbl_RangeDesc.TabIndex = 46;
-            this.Lbl_RangeDesc.Text = "Range:";
             // 
             // MainWnd
             // 
@@ -880,6 +890,7 @@
         private System.Windows.Forms.Label Lbl_MapName;
         private System.Windows.Forms.Label Lbl_Range;
         private System.Windows.Forms.Label Lbl_RangeDesc;
+        private System.Windows.Forms.ToolTip ToolTips;
     }
 }
 

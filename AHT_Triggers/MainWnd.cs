@@ -413,7 +413,8 @@ namespace AHT_Triggers
                 OpenScriptViewer();
             } else
             {
-                scriptViewer.Focus();
+                scriptViewer.Dispose();
+                OpenScriptViewer();
             }
         }
 

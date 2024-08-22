@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 
 namespace AHT_Triggers.Data
 {
-    internal class ByteSwapper
+    internal static class ByteSwapper
     {
-        private ByteSwapper() { }
-
         public static ushort SwapBytes(ushort x)
         {
             return (ushort)((ushort)((x & 0xff) << 8) | ((x >> 8) & 0xff));

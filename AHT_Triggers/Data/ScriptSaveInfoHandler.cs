@@ -8,15 +8,13 @@ namespace AHT_Triggers.Data
     /// Contains a public static variable to store the saved info for the current session.
     /// Provides methods to load/save variable names from/to a file.
     /// </summary>
-    public class ScriptSaveInfoHandler
+    public static class ScriptSaveInfoHandler
     {
         /// <summary>
         /// Active saved info object for the gamescript being viewed.
+        /// Made static so as to be accessed from anywhere.
         /// </summary>
         public static GameScriptSaveInfo ActiveInfo = new GameScriptSaveInfo();
-
-        //private ctor (this class does not need instancing)
-        private ScriptSaveInfoHandler() { }
 
         /// <summary>
         /// Get the path to where the info for the script with the given info will be saved/loaded from.
@@ -252,7 +250,7 @@ namespace AHT_Triggers.Data
 
             //Open file
             using (StreamWriter writer = new StreamWriter(
-                        new FileStream(txtpath, FileMode.Create, FileAccess.Write)
+                        new FileStream(txtpath, FileMode.Create)
                     )
                 )
             {

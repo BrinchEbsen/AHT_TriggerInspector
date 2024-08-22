@@ -9,7 +9,7 @@ namespace AHT_Triggers.Data
     /// <summary>
     /// Map information that is defined in the game's executable instead of the map file.
     /// </summary>
-    public class MapInfo
+    public static class MapInfo
     {
         public struct HardCodedMapInfo
         {

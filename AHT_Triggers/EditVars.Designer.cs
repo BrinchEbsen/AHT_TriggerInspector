@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.Vars = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.DGV_Vars = new System.Windows.Forms.DataGridView();
             this.Btn_Apply = new System.Windows.Forms.Button();
@@ -39,6 +40,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
+            this.ToolTips = new System.Windows.Forms.ToolTip(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.DGV_Vars)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.DGV_Procs)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.DGV_Labels)).BeginInit();
@@ -76,6 +78,8 @@
             this.Btn_Apply.Size = new System.Drawing.Size(75, 23);
             this.Btn_Apply.TabIndex = 1;
             this.Btn_Apply.Text = "Apply";
+            this.ToolTips.SetToolTip(this.Btn_Apply, "Save the current names and re-decompile the script to make the changes take effec" +
+        "t.");
             this.Btn_Apply.UseVisualStyleBackColor = true;
             this.Btn_Apply.Click += new System.EventHandler(this.Btn_Apply_Click);
             // 
@@ -87,6 +91,8 @@
             this.Btn_Reset.Size = new System.Drawing.Size(75, 23);
             this.Btn_Reset.TabIndex = 2;
             this.Btn_Reset.Text = "Reset";
+            this.ToolTips.SetToolTip(this.Btn_Reset, "Reset all variables, procedures and labels to their auto-generated names,\r\nand re" +
+        "-decompile the script to make the changes take effect.");
             this.Btn_Reset.UseVisualStyleBackColor = true;
             this.Btn_Reset.Click += new System.EventHandler(this.Btn_Reset_Click);
             // 
@@ -107,6 +113,7 @@
             this.DGV_Procs.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
             this.DGV_Procs.Size = new System.Drawing.Size(200, 717);
             this.DGV_Procs.TabIndex = 3;
+            this.DGV_Procs.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.DGV_Procs_CellValueChanged);
             // 
             // dataGridViewTextBoxColumn1
             // 
@@ -130,6 +137,7 @@
             this.DGV_Labels.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
             this.DGV_Labels.Size = new System.Drawing.Size(200, 717);
             this.DGV_Labels.TabIndex = 4;
+            this.DGV_Labels.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.DGV_Labels_CellValueChanged);
             // 
             // dataGridViewTextBoxColumn2
             // 
@@ -202,5 +210,6 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.ToolTip ToolTips;
     }
 }

@@ -17,7 +17,8 @@ namespace AHT_Triggers
         private extern static IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wp, IntPtr lp);
 
         private readonly Trigger trigger;
-        private readonly bool doHighLight;
+        private bool doHighLight;
+        private bool hasShownErrors = false;
         private readonly string viewingFile;
         private readonly int selectedMap;
         private ByteCodeDecompiler decomp;
@@ -28,14 +29,15 @@ namespace AHT_Triggers
         private static readonly Color COLOR_COMMENT  = Color.FromArgb(0x85, 0x99, 0);
         private static readonly Color COLOR_ERROR    = Color.Red;
 
-        //Constructor needs all the info to know what file to load
         public ScriptViewer(Trigger trigger, int selectedMap, string viewingFile, bool doHighLight)
         {
+            InitializeComponent();
+
             this.trigger = trigger;
             this.doHighLight = doHighLight;
+            Check_SyntaxHighlight.Checked = doHighLight;
             this.viewingFile = viewingFile;
             this.selectedMap = selectedMap;
-            InitializeComponent();
         }
 
         private void ScriptViewer_Load(object sender, EventArgs e)
@@ -97,9 +99,10 @@ namespace AHT_Triggers
             Txt_ScriptCode.Text = decomp.DecompileScript(out DecodeResult res);
 
             //If any errors occoured, report it in a pop-up
-            if (res != DecodeResult.Success)
+            if ((res != DecodeResult.Success) && !hasShownErrors)
             {
                 CreateDecompErrorPopup(res);
+                hasShownErrors = true;
             }
 
             Txt_ByteCode.Text = decomp.BytecodeToString();
@@ -243,8 +246,6 @@ namespace AHT_Triggers
         private void Check_ShowUnknown_CheckedChanged(object sender, EventArgs e)
         {
             decomp.ShowUnknown = Check_ShowUnknown.Checked;
-
-            InsertDecompiledCode();
         }
 
         private void Btn_EditVarNames_Click(object sender, EventArgs e)
@@ -272,6 +273,21 @@ namespace AHT_Triggers
         private void ScriptViewer_FormClosing(object sender, FormClosingEventArgs e)
         {
             VarWnd?.Dispose();
+        }
+
+        private void Btn_ApplyChanges_Click(object sender, EventArgs e)
+        {
+            InsertDecompiledCode();
+        }
+
+        private void NUD_IndentationLevel_ValueChanged(object sender, EventArgs e)
+        {
+            decomp.IndentationAmount = (int)NUD_IndentationLevel.Value;
+        }
+
+        private void Check_SyntaxHighlight_CheckedChanged(object sender, EventArgs e)
+        {
+            doHighLight = Check_SyntaxHighlight.Checked;
         }
     }
 }

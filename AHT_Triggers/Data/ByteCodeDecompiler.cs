@@ -85,7 +85,7 @@ namespace AHT_Triggers.Data
         /// <summary>
         /// How many spaces are added for each indentation level.
         /// </summary>
-        private static readonly int INDENT_LEVEL = 4;
+        public int IndentationAmount { get; set; }
 
         /// <summary>
         /// Describes how a line of code will change the indentation.
@@ -198,10 +198,7 @@ namespace AHT_Triggers.Data
         /// Instantiates the <see cref="ByteCodeDecompiler"/> with the <see cref="GameScript"/> that it will read data from.
         /// </summary>
         /// <param name="script">Script that the decompiler will read data from</param>
-        public ByteCodeDecompiler(GameScript script)
-        {
-            this.Script = script;
-        }
+        public ByteCodeDecompiler(GameScript script) : this(script, null) { }
         
         /// <summary>
         /// Instantiates the <see cref="ByteCodeDecompiler"/> with the <see cref="GameScript"/> that it will read data from,
@@ -213,6 +210,7 @@ namespace AHT_Triggers.Data
         {
             this.Script = script;
             this.SaveInfo = info;
+            this.IndentationAmount = 4; //default
         }
 
         /// <summary>
@@ -581,7 +579,7 @@ namespace AHT_Triggers.Data
 
         /// <summary>
         /// Add whitespace before the given string <paramref name="s"/>
-        /// according to the current <see cref="Indentation"/> and <see cref="INDENT_LEVEL"/>.
+        /// according to the current <see cref="Indentation"/> and <see cref="IndentationAmount"/>.
         /// </summary>
         /// <param name="s">Command to indent</param>
         /// <returns>Indented command</returns>
@@ -593,7 +591,7 @@ namespace AHT_Triggers.Data
                 return s;
             } else
             {
-                return new string(' ', Indentation * INDENT_LEVEL) + s;
+                return new string(' ', Indentation * IndentationAmount) + s;
             }
         }
 
@@ -921,7 +919,7 @@ namespace AHT_Triggers.Data
                         {
                             if (v.proc == CurrentProc)
                             {
-                                codeStr.Insert(i + offs, new string(' ', INDENT_LEVEL) + "INT " + GetVarName(v.index));
+                                codeStr.Insert(i + offs, new string(' ', IndentationAmount) + "INT " + GetVarName(v.index));
                                 offs++;
 
                                 addNewLine = true;
@@ -952,7 +950,7 @@ namespace AHT_Triggers.Data
 
                 if (lblName != null)
                 {
-                    codeStr.Insert(i + offs, new string(' ', INDENT_LEVEL) + "LABEL " + lblName);
+                    codeStr.Insert(i + offs, new string(' ', IndentationAmount) + "LABEL " + lblName);
                     offs++;
                 }
 
