@@ -1,5 +1,6 @@
 ﻿using AHT_Triggers.Data;
 using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -9,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace AHT_Triggers
 {
@@ -147,6 +149,55 @@ namespace AHT_Triggers
             SaveScriptInfo();
         }
 
+        /// <summary>
+        /// Check if a name for a variable/procedure/label is valid.
+        /// </summary>
+        /// <param name="name">Proposed name.</param>
+        /// <param name="msg">Resulting message.</param>
+        /// <returns>True if name was valid.</returns>
+        private static bool NameIsValid(string name, out string msg)
+        {
+            //Check if it contains invalid characters
+            if (string.IsNullOrEmpty(name)) //Check if it's empty
+            {
+                msg = "The name is empty.";
+                return false;
+            }
+            if ((!char.IsLetter(name[0])) && (name[0] != '_')) //Check if it starts with a letter or underscore
+            {
+                msg = "The name must start with a letter or underscore.";
+                return false;
+            }
+            for (int i = 1; i < name.Length; ++i) //Check if the rest of the name contains valid characters
+            {
+                if (!char.IsLetterOrDigit(name[i]) && name[i] != '_')
+                {
+                    msg = "The name contains invalid characters.";
+                    return false;
+                }
+            }
+
+            //Check if using reserved syntax
+            foreach (string s in Syntax.SYNTAX_KEYWORDS)
+            {
+                if (name.IndexOf(s) >= 0)
+                {
+                    msg = "The name cannot contain reserved keyword " + s + ".";
+                    return false;
+                }
+            }
+
+            //Check if using hashcode naming (this is purely because of the lazy way i highlight hashcodes)
+            if (name.IndexOf("HT_") >= 0)
+            {
+                msg = "The name cannot contain \"HT_\", as this marks the start of a hashcode.";
+                return false;
+            }
+
+            msg = "Name is valid.";
+            return true;
+        }
+
         private void DGV_Vars_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0)
@@ -156,23 +207,11 @@ namespace AHT_Triggers
 
             DataGridViewCell cell = DGV_Vars.Rows[e.RowIndex].Cells[0];
 
-            //Check if using reserved syntax
-            foreach (string s in Syntax.SYNTAX_KEYWORDS)
+            bool nameValid = NameIsValid((string)cell.Value, out string msg);
+            if (!nameValid)
             {
-                if (((string)cell.Value).IndexOf(s) >= 0)
-                {
-                    MessageBox.Show("A variable cannot contain reserved keyword " + s + ".", "Invalid name",
+                MessageBox.Show(msg, "Invalid variable name",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
-
-                    cell.Value = savedVarNames[e.RowIndex];
-                    return;
-                }
-            }
-            //Check if using hashcode naming
-            if (((string)cell.Value).IndexOf("HT_") >= 0)
-            {
-                MessageBox.Show("A variable cannot contain \"HT_\", as this marks the start of a hashcode.", "Invalid name",
-                MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
                 cell.Value = savedVarNames[e.RowIndex];
                 return;
@@ -191,23 +230,11 @@ namespace AHT_Triggers
 
             DataGridViewCell cell = DGV_Procs.Rows[e.RowIndex].Cells[0];
 
-            //Check if using reserved syntax
-            foreach (string s in Syntax.SYNTAX_KEYWORDS)
+            bool nameValid = NameIsValid((string)cell.Value, out string msg);
+            if (!nameValid)
             {
-                if (((string)cell.Value).IndexOf(s) >= 0)
-                {
-                    MessageBox.Show("A procedure cannot contain reserved keyword " + s + ".", "Invalid name",
+                MessageBox.Show(msg, "Invalid procedure name",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
-
-                    cell.Value = savedProcNames[e.RowIndex];
-                    return;
-                }
-            }
-            //Check if using hashcode naming
-            if (((string)cell.Value).IndexOf("HT_") >= 0)
-            {
-                MessageBox.Show("A procedure cannot contain \"HT_\", as this marks the start of a hashcode.", "Invalid name",
-                MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
                 cell.Value = savedProcNames[e.RowIndex];
                 return;
@@ -226,23 +253,11 @@ namespace AHT_Triggers
 
             DataGridViewCell cell = DGV_Labels.Rows[e.RowIndex].Cells[0];
 
-            //Check if using reserved syntax
-            foreach (string s in Syntax.SYNTAX_KEYWORDS)
+            bool nameValid = NameIsValid((string)cell.Value, out string msg);
+            if (!nameValid)
             {
-                if (((string)cell.Value).IndexOf(s) >= 0)
-                {
-                    MessageBox.Show("A label cannot contain reserved keyword " + s + ".", "Invalid name",
+                MessageBox.Show(msg, "Invalid label name",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
-
-                    cell.Value = savedLabelNames[e.RowIndex];
-                    return;
-                }
-            }
-            //Check if using hashcode naming
-            if (((string)cell.Value).IndexOf("HT_") >= 0)
-            {
-                MessageBox.Show("A label cannot contain \"HT_\", as this marks the start of a hashcode.", "Invalid name",
-                MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
                 cell.Value = savedLabelNames[e.RowIndex];
                 return;

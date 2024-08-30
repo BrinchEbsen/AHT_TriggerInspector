@@ -136,7 +136,7 @@ namespace AHT_Triggers
                 return;
             }
 
-            if ((SelectedMap < 0) && (SelectedMap >= ViewingData.Count))
+            if ((SelectedMap < 0) || (SelectedMap >= ViewingData.Count))
             {
                 return;
             }

@@ -15,7 +15,7 @@ namespace AHT_Triggers.Data
     /// </summary>
     internal class EDBWriter : BinaryWriter
     {
-        private Endian Endian;
+        private readonly Endian Endian;
 
         public EDBWriter(FileStream stream, Encoding encoding, Endian Endian) : base(stream, encoding, false)
         {

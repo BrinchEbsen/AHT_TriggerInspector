@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AHT_Triggers.Data
 {
-    public class Syntax
+    public static class Syntax
     {
         public static readonly string[] SYNTAX_ERRORFIELDS =
         {

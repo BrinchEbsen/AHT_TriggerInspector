@@ -16,7 +16,7 @@ namespace AHT_Triggers.Data
     /// </summary>
     internal class EDBReader : BinaryReader
     {
-        private Endian Endian;
+        private readonly Endian Endian;
 
         public EDBReader(FileStream stream, Encoding encoding, Endian Endian) : base(stream, encoding, false) {
             this.Endian = Endian;
